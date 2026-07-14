@@ -3,6 +3,25 @@
 Every entry records a method change and the session/failure that motivated it. Maintained by
 `devarm-retro` — a lesson is only "done" when it's a gate in the method, not just a note.
 
+## 2026-07-14 — adopt from BMad Method (v6)
+
+Reviewed BMad v6 (no local install — reviewed via its docs: 4-phase model, scale-adaptive
+tracks, 12 agent personas, story-by-story implementation loop, party mode, web bundles).
+BMad's persona layer duplicates what devarm's review lenses already do, but three ideas were
+genuinely missing:
+
+| Change | Source / rationale |
+|--------|--------------------|
+| Scale gate in brainstorm (quick vs standard track): bug-fix/single-story work collapses spec/plan/analyze into one short doc; gates (grounding, approval, TDD, verification) never collapse; auto-upgrade to standard when quick work reveals persistence/contract/blast-radius growth | BMad's scale-adaptive levels 0-4 / quick-spec track — devarm previously ran full ceremony on everything, which invites skipping the method for small work |
+| Course-correction protocol in implement: mid-stream scope change → list affected requirements/ledger rows/tasks, update artifacts, scoped re-analyze, explicit rework tasks | BMad's `correct-course` workflow — devarm's drift rule covered code-vs-plan conflicts but not requirements changing underneath the work |
+| Pipeline status line + last-session note in the design-doc header, updated at every gate | BMad's `workflow-status` / sprint-status tracking — devarm had no durable "where are we" marker, so a fresh session (or tool switch) had to reconstruct state from artifacts |
+
+Not adopted: agent personas incl. party mode (devarm's review already applies the useful
+lenses — architecture + QA — without persona ceremony; personas add role-play overhead, not
+gates); PRD/product-brief artifact layer (devarm's design doc + spec cover it for solo work);
+JIT per-epic tech-specs (devarm-analyze re-verifies against current code, which addresses the
+same staleness problem); web bundles (tool-specific packaging).
+
 ## 2026-07-14 — adopt from spec-kit (speckit)
 
 Reviewed all 14 speckit skills, its templates, scripts, and extension machinery. devarm's

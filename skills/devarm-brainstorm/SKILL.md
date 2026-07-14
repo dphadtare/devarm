@@ -28,6 +28,17 @@ assumptions cause the most wasted work.
 2. **Scope check.** If the idea spans multiple independent subsystems, stop and help decompose
    it into sub-projects first — each gets its own design → spec → plan → implement cycle. Don't
    refine details of something that should be split.
+2b. **Scale gate.** Classify the work and recommend a track (user confirms):
+   - **Quick track** — bug fix or single-story change with a small blast radius (roughly ≤3
+     files, no new persistence, no contract changes). The GATES stay, the ARTIFACTS collapse:
+     one short doc holds a few-sentence design, a scoped grounding pass (the touched seams +
+     whichever of the 10 categories apply), and a mini task list; skip separate spec/plan/
+     analyze docs and go to implement (TDD + verification unchanged). If quick-track work
+     reveals new persistence, a contract change, or a widening blast radius — STOP and
+     upgrade to the standard track; that discovery is the signal, not an obstacle.
+   - **Standard track** — everything else: the full pipeline below.
+   Never skip grounding, user approval, TDD, or verification on any track — scale trims
+   paperwork, not gates.
 3. **Ask clarifying questions — one at a time.** Prefer multiple-choice with a recommended
    option first. One question per message; break big topics into several. Work through the
    Question Coverage Map below — every area answered or explicitly marked N/A/deferred before

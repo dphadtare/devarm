@@ -85,6 +85,13 @@ decision in a past session.)
 diverge. Update the design/ledger with the new evidence (a design-level decision → ask), then
 continue.
 
+**Course correction (requirements changed underneath you):** when the user changes scope
+mid-implementation or a new external constraint lands, do not absorb it ad hoc. Stop and run
+a mini correct-course pass: (1) list which spec requirements, ledger rows, and remaining tasks
+the change touches; (2) update those artifacts (new/superseded ledger rows, with the user for
+design-level ones); (3) re-run `devarm-analyze` scoped to the affected areas; (4) resume.
+Completed, unaffected work stays; affected completed work gets an explicit rework task.
+
 ## Two execution modes
 
 - **Inline** — execute tasks in this session in small batches with checkpoints for review.

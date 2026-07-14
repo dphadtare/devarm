@@ -3,6 +3,11 @@
 **Document type:** Design spec (devarm-brainstorm output)
 **Date:** YYYY-MM-DD
 **Status:** Draft — pending grounding (devarm-ground) and user approval
+**Track:** standard | quick
+**Pipeline:** brainstorm ▶ ground ☐ spec ☐ plan ☐ tasks ☐ analyze ☐ implement ☐ review ☐ finish ☐
+<!-- Update the Pipeline line at each phase gate (▶ = in progress, ☑ = passed). It is how a
+fresh session knows exactly where this feature stands — keep it true. -->
+**Last session note:** <one line: where work stopped, what's next>
 
 **Builds on / related:** <links to prior designs, specs, or landed work this must respect>
 
