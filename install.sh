@@ -64,7 +64,7 @@ link_one() {
 }
 
 for base in "${TARGET_BASES[@]}"; do
-  echo "${UNINSTALL:+un}installing in: $base"
+  if [[ "$UNINSTALL" == "true" ]]; then echo "uninstalling in: $base"; else echo "installing in: $base"; fi
   for skill_dir in "$SKILLS_SRC"/devarm-*; do
     [[ -d "$skill_dir" ]] || continue
     name="$(basename "$skill_dir")"
