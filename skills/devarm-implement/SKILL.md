@@ -18,10 +18,15 @@ hasn't run since the last artifact/code change, run it first.
 
 ## Execution loop (per task)
 
+Follow `devarm-tdd` for steps 1–3 — it carries the full discipline (the delete rule for code
+written before its test, RED must FAIL not error, test-quality rules, anti-patterns).
+
 1. **Red** — write the failing test that defines the behavior. Run it; confirm it FAILS for the
-   expected reason. A test that passes before implementation is not testing what you think.
-2. **Green** — write the minimum code to make it pass. Run the test; confirm it PASSES.
-3. **Refactor** — improve while keeping tests green.
+   expected reason (a failure, not an error). A test that passes before implementation is not
+   testing what you think. Code written before its test gets deleted, not "kept as reference".
+2. **Green** — write the minimum code to make it pass. Run the test; confirm it PASSES and the
+   rest of the suite stays green.
+3. **Refactor** — improve while keeping tests green. No new behavior.
 4. **Verify** — run the relevant test/lint/type commands and read the ACTUAL output. Do not
    claim "done", "fixed", or "passing" without command output confirming it.
 5. **Commit** — small, focused commit. Only commit when the user has asked you to commit, per

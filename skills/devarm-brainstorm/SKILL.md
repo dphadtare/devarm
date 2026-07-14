@@ -21,7 +21,10 @@ assumptions cause the most wasted work.
 ## Checklist (create a task per item, complete in order)
 
 1. **Explore project context.** Read the relevant files, docs, and recent commits. In an
-   existing codebase, learn the current patterns before proposing changes.
+   existing codebase, learn the current patterns before proposing changes. Where existing code
+   has problems that directly affect this work (an overgrown file you must touch, tangled
+   boundaries), include targeted improvements in the design — but never propose unrelated
+   refactoring; stay on what serves the goal.
 2. **Scope check.** If the idea spans multiple independent subsystems, stop and help decompose
    it into sub-projects first — each gets its own design → spec → plan → implement cycle. Don't
    refine details of something that should be split.

@@ -3,6 +3,21 @@
 Every entry records a method change and the session/failure that motivated it. Maintained by
 `devarm-retro` — a lesson is only "done" when it's a gate in the method, not just a note.
 
+## 2026-07-14 — deep-dive on superpowers brainstorming + TDD
+
+Line-by-line comparison of the two most important superpowers skills against devarm:
+
+| Change | Rationale |
+|--------|-----------|
+| New `devarm-tdd` (core discipline, consumed by implement + debug) | devarm-implement's 3-line red/green/refactor lost the parts that make TDD hold under pressure: the **delete rule** (code before test is deleted, not "kept as reference"), **RED must FAIL not error** / test-passes-immediately means it tests nothing, test-quality rules (one behavior, spec-like names, real code over mocks), the when-stuck table (hard to test = design problem), mock/test-only-method anti-patterns, and the rationalization red-flags |
+| `devarm-implement` execution loop delegates to `devarm-tdd`; `devarm-debug` Phase-4 repro test cites it | One home for the discipline instead of two paraphrases |
+| `devarm-brainstorm`: targeted-improvement rule for existing codebases | From superpowers brainstorming — fix existing problems that directly affect the work as part of the design; never bundle unrelated refactoring |
+
+Checked and already covered by devarm-brainstorm (no change): hard gate, "too simple to need
+a design" anti-pattern, scope-check/decomposition, one-question-at-a-time, 2-3 approaches,
+sectioned presentation, spec self-review checklist, written-spec user gate, single terminal
+hand-off. Not adopted: the browser "visual companion" (tool-specific, token-heavy).
+
 ## 2026-07-14 — adopt from the superpowers plugin
 
 Reviewed all 14 superpowers skills. Brainstorming/TDD/plan-writing/verification were already

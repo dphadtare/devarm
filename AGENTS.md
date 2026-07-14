@@ -26,6 +26,7 @@ approved, which is what keeps decisions out of implementation.
 | 9 | Finish | `devarm-finish` | merged branch / PR / kept / discarded | Fresh full-suite green; four structured options; typed confirm to discard |
 | 10 | Retro | `devarm-retro` | proposed edits (commits) to this kit | Session analyzed; method improved |
 | — | Debug (on-demand) | `devarm-debug` | root cause + failing test + one verified fix | No fix without root cause; 3 failed fixes → question the architecture |
+| — | TDD (core discipline) | `devarm-tdd` | behavior locked by a test seen to fail first | No production code without a failing test; code-before-test gets deleted |
 
 ## When to invoke each skill
 
@@ -43,6 +44,9 @@ approved, which is what keeps decisions out of implementation.
 - `devarm-review` runs before merge, or whenever a major step completes.
 - `devarm-debug` is invoked **on demand from any phase** the moment a bug, test failure, or
   unexpected behavior appears — before proposing any fix. Root cause first, always.
+- `devarm-tdd` is the shared coding discipline consumed by `devarm-implement` (every task) and
+  `devarm-debug` (every fix): no production code without a test seen to fail first; code
+  written before its test is deleted, not kept as reference.
 - `devarm-finish` closes the branch once review findings are resolved: fresh full-suite
   verification, then merge / PR / keep / discard (discard needs typed confirmation).
 - `devarm-retro` runs after a feature ships (or after a painful session) to feed lessons back

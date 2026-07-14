@@ -43,7 +43,8 @@ fix on top. If you don't understand something, say so instead of pretending.
 
 ## Phase 4 — Fix
 
-1. Write the failing test that reproduces it (TDD) — before the fix.
+1. Write the failing test that reproduces it — before the fix (per `devarm-tdd`; confirm it
+   fails for the bug's reason, not an error). Never fix a bug without a reproducing test.
 2. One fix, addressing the root cause. No "while I'm here" refactoring.
 3. Verify: the test passes, the suite is green, the original symptom is gone.
 
