@@ -61,11 +61,17 @@ each answer becomes a candidate Decision Ledger row so it can't be re-litigated 
 | Limits & config | Every number or knob, with its four sub-answers up front: bounds what / enforced where / configurable at what granularity / behavior at the limit. Don't accept a bare number. |
 | Compatibility | What existing behavior must remain byte-identical? Who else consumes what this touches? |
 | Communication/UX surface | What messages/notifications/UI does this emit — how many, when, consolidated or per-item? |
+| Non-functional qualities | Only the ones that matter here: performance/scale targets, reliability/recovery expectations, observability (what must be visible in logs/metrics), security/privacy posture, compliance. Skip aloud what doesn't apply. |
+| Integration & external dependencies | Which external services/APIs are touched, their failure modes, data formats, versioning assumptions. |
 | Success criteria | How will we KNOW it works — measurable, checkable after implementation. |
 | Trade-off preferences | Where the user stands on speed vs safety, cost vs completeness, simple-now vs flexible-later. |
 
 **Questioning rules:**
 
+- **Lead with a recommendation the user can accept cheaply.** For multiple-choice, put
+  `**Recommended:** <option> — <1-2 line reason>` above the options and tell the user a plain
+  "yes" accepts it. Prioritize remaining questions by impact × uncertainty — never spend two
+  low-impact questions while a high-impact area is unresolved.
 - **Follow the fork.** If an answer opens a new decision (an answer like "sequential is fine,
   but the fallback needs expansion" contains 2-3 embedded decisions), play back your
   restatement of what they decided and ask the next question the answer created — don't move

@@ -28,12 +28,26 @@ metadata:
   read two ways, pick one and make it explicit.
 - Success criteria must be **measurable and technology-agnostic** (e.g. "users complete checkout
   in under 3 minutes", not "API responds in 200ms").
+- **User stories are prioritized (P1, P2, …) and independently testable.** Each story is a
+  standalone slice that could be implemented, tested, and demonstrated on its own; name its
+  "Independent Test" explicitly and write acceptance scenarios as Given/When/Then. P1 stories
+  alone must form a viable MVP — this is what lets tasks be organized story-by-story and lets
+  implementation stop at a working increment.
 - Cover user scenarios / primary flows, edge cases, scope boundaries, dependencies, assumptions.
+  Scenario classes to check explicitly: primary, alternate, exception/error, recovery, and
+  non-functional — mark any class intentionally excluded rather than leaving it silently absent.
 - Make informed guesses using context and industry standards; record them in an Assumptions
   section. Use at most **3** `[NEEDS CLARIFICATION]` markers, only for choices that materially
   affect scope, security/privacy, or UX with no reasonable default.
 
 ## Quality gate (run before handing off)
+
+The gate tests the REQUIREMENTS, not the implementation ("unit tests for English"): each check
+asks whether what's *written* is complete, clear, consistent, measurable, and covered — e.g.
+"is 'fast' quantified?", "do §FR-4 and §FR-10 conflict?", "is the zero-state defined?". For a
+complex or risky domain (security, migration, UX-heavy), optionally generate a short
+domain-specific checklist of such questions, each tagged [Completeness/Clarity/Consistency/
+Coverage/Measurability] and tied to a spec section or [Gap].
 
 Validate the spec against this checklist; iterate (max 3 passes) until it passes:
 

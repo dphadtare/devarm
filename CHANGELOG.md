@@ -3,6 +3,26 @@
 Every entry records a method change and the session/failure that motivated it. Maintained by
 `devarm-retro` — a lesson is only "done" when it's a gate in the method, not just a note.
 
+## 2026-07-14 — adopt from spec-kit (speckit)
+
+Reviewed all 14 speckit skills, its templates, scripts, and extension machinery. devarm's
+pipeline was already modeled on speckit's (specify→plan→tasks→analyze→implement) and reuses
+`.specify/` templates when present; adopted the concepts that survive outside that machinery:
+
+| Change | Source / rationale |
+|--------|--------------------|
+| Spec: prioritized, independently-testable user stories (P1/P2/…, named Independent Test, Given/When/Then scenarios, P1 = viable MVP) | speckit spec-template — this structure is what made spec-016's tasks organizable story-by-story with a stoppable MVP slice |
+| Spec: explicit scenario-class sweep (primary / alternate / exception / recovery / non-functional), absent classes marked excluded rather than silent | speckit-clarify taxonomy + checklist scenario classification |
+| Spec quality gate reframed as "unit tests for English" — checks test the WRITTEN requirements (completeness/clarity/consistency/measurability/coverage), with optional domain checklist for risky areas | speckit-checklist's core concept, condensed from 367 lines to a paragraph |
+| Brainstorm: recommendation-first question format ("Recommended: X — reason; reply 'yes' to accept") + impact×uncertainty prioritization of remaining questions | speckit-clarify's questioning loop — cheap accepts and never spending low-impact questions while high-impact areas are open |
+| Brainstorm coverage map: non-functional qualities + integration/external-dependency areas | speckit-clarify's taxonomy had these two categories the map lacked |
+
+Not adopted: hooks/extensions.yml machinery and check-prerequisites scripts (speckit plumbing —
+devarm skills chain directly); `## Clarifications` session log in the spec (the Decision
+Ledger is devarm's single home for decisions; a second Q→A log would split the record);
+speckit-taskstoissues (YAGNI for a solo workflow — revisit if working with a team);
+feature-numbering git scripts (reused via `.specify/` when present).
+
 ## 2026-07-14 — Question Coverage Map in brainstorm
 
 "Ask clarifying questions" said HOW to ask (one at a time, multiple choice) but not WHAT must
