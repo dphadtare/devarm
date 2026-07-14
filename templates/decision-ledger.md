@@ -22,6 +22,10 @@ The single, reviewable home for every load-bearing implementation decision. Fill
   - `mechanical` — naming, test layout → just do it (usually not worth a row).
 - **Unanswered ≠ approval.** A question with no answer becomes a row with status
   `assumed — awaiting confirmation`, surfaced to the user — never treated as a silent yes.
+- **Supersede, don't edit.** When a settled decision is reopened, the old row's status becomes
+  `superseded (→ D<new>)` and a new row records the new choice + evidence. Then ripple-check:
+  every row and design section that depended on the old answer is re-confirmed or revised —
+  never leave a dependent row citing a superseded decision.
 
 ## Ledger
 

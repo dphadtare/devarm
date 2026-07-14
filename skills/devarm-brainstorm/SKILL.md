@@ -92,6 +92,32 @@ each answer becomes a candidate Decision Ledger row so it can't be re-litigated 
 - **Stop condition:** questioning is done when every map area is answered/N/A **and** the last
   answer opened no new fork — not when a fixed question count is reached.
 
+## Back-and-forth protocol (iteration is normal — churn must land somewhere)
+
+Revision during brainstorming is expected and cheap **before approval**; the job is to make
+sure every loop ends in an updated artifact, not a drifting conversation.
+
+- **Open question revisited** → just answer it again; nothing special.
+- **Settled decision reopened** (user changes an earlier answer, or new information invalidates
+  it): do NOT edit the conversation's memory only. (1) Mark the old ledger row `superseded`,
+  add the new row with the new evidence; (2) **ripple-check**: scan the other ledger rows and
+  design sections that depended on the old answer and re-confirm or revise each one aloud;
+  (3) if the change touches any reuse claim or grounded category, re-run the affected part of
+  `devarm-ground`. A reopened decision that skips the ripple check is how designs go
+  internally inconsistent.
+- **New consideration arrives mid-design** ("let's also account for X"): first classify — is
+  it a new fork in THIS design (fold it into the coverage map and continue) or a scope change
+  (back to the scope/scale check; possibly a separate feature)?
+- **Resuming after a gap** (hours, days, or a new session): before continuing the dialogue,
+  (1) read the design doc's Pipeline line + last-session note; (2) `git log`/diff the repo
+  since the design was last touched and check whether landed changes invalidate any grounded
+  evidence or ledger row — re-ground what moved; (3) play back the current decision state in
+  3-5 bullets and confirm before asking the next question. Never resume by re-asking what the
+  ledger already answers.
+- **After approval**, the bar changes: design changes go through a superseding ledger row
+  (design-level → the user decides), and if implementation has started, through
+  `devarm-implement`'s course-correction protocol instead of quiet design edits.
+
 ## Design for isolation and clarity
 
 Break the system into small units that each have one clear purpose, communicate through

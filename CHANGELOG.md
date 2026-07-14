@@ -3,6 +3,19 @@
 Every entry records a method change and the session/failure that motivated it. Maintained by
 `devarm-retro` — a lesson is only "done" when it's a gate in the method, not just a note.
 
+## 2026-07-14 — back-and-forth protocol for brainstorming/design
+
+devarm channeled iteration (fork-following, per-section approval, ground bounce-backs, ledger
+rows) but had no protocol for the two churn patterns that actually hurt in the spec-016
+session: reopening a settled decision (cap semantics — 4 post-design exchanges, design
+rewritten twice) and resuming after a gap (Jul 10 → 13, landed code had invalidated design
+assumptions).
+
+| Change | Rationale |
+|--------|-----------|
+| Brainstorm back-and-forth protocol: open-vs-settled distinction; supersede + **ripple-check** for reopened decisions; classify mid-design arrivals (new fork vs scope change); resume-after-gap steps (status line → repo diff vs grounded evidence → play back state, never re-ask the ledger); post-approval changes go through superseding rows / course-correction | Every loop must end in an updated artifact, not a drifting conversation |
+| Ledger rule: supersede-don't-edit with `superseded (→ D<new>)` back-reference; dependent rows/sections re-confirmed | A reopened decision that skips the ripple check is how designs go internally inconsistent |
+
 ## 2026-07-14 — adopt from BMad Method (v6)
 
 Reviewed BMad v6 (no local install — reviewed via its docs: 4-phase model, scale-adaptive
