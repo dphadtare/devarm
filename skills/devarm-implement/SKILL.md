@@ -41,9 +41,20 @@ hasn't run since the last artifact/code change, run it first.
 
 ## Verification before completion (non-negotiable)
 
-Before saying a task or the feature is complete, you MUST have run the verification and seen it
-pass. Evidence before assertions, always. If you cannot run it, say so explicitly rather than
-implying success.
+> NO COMPLETION CLAIMS WITHOUT FRESH VERIFICATION EVIDENCE — run the proving command in THIS
+> turn, read the full output, then claim. "Should work", confidence, and previous runs are not
+> evidence. This covers paraphrases too: any wording implying success counts as a claim.
+
+| Claim | Requires | Not sufficient |
+|-------|----------|----------------|
+| Tests pass | fresh test run: 0 failures | earlier run, "should pass" |
+| Lint/types clean | fresh tool output: 0 errors | partial check |
+| Build succeeds | build exit 0 | lint passing |
+| Bug fixed | original symptom re-tested | code changed, assumed fixed |
+| Regression test works | red-green verified (fails without fix, passes with) | test passed once |
+| Subagent completed | inspect the actual diff | subagent's "success" report |
+
+If you cannot run the verification, say so explicitly rather than implying success.
 
 ## Decision ownership at implementation time (the taxonomy)
 
@@ -72,9 +83,26 @@ continue.
 ## Two execution modes
 
 - **Inline** — execute tasks in this session in small batches with checkpoints for review.
-- **Subagent-driven (recommended for larger plans)** — dispatch a fresh subagent per task, then
-  review its work in two stages (does it meet the task? does it meet the code standards?) before
-  moving on. Keeps each unit of work in a clean context.
+- **Subagent-driven (recommended for larger plans)** — dispatch a fresh subagent per task.
+  Protocol:
+  - **Provide the full task text + curated context in the prompt** — never "read the plan
+    file"; the controller extracts what each task needs, including where it fits.
+  - **Two-stage review per task, in order:** spec compliance first (does it do exactly what
+    the task says — nothing missing, nothing extra), THEN code quality (standards, patterns,
+    tests). Issues found → same subagent fixes → re-review. Never start quality review before
+    spec compliance passes; never move on with open issues.
+  - **Size the model to the task:** cheap/fast model for mechanical 1–2-file tasks with a
+    complete spec; standard for multi-file integration; most capable for design/review.
+  - **Handle subagent status:** NEEDS_CONTEXT → supply it and re-dispatch; BLOCKED → change
+    something (context, model, task split) or escalate to the user — never retry unchanged;
+    never dispatch two implementers in parallel on overlapping files.
+  - **Verify independently** — check the actual diff; a subagent's "success" is not evidence.
+- **Debugging during either mode:** any test failure or unexpected behavior → invoke
+  `devarm-debug` (root cause first); do not patch symptoms inline. If multiple independent
+  failures appear, `devarm-debug` covers parallel per-domain subagents.
+- **Isolation (optional):** for work that must not disturb the main checkout, use a git
+  worktree — create it under an ignored dir (`git check-ignore` it first), run setup, and
+  confirm a green baseline before task 1; a dirty baseline makes new failures unattributable.
 
 ## Discipline
 
@@ -85,4 +113,5 @@ continue.
 
 ## Hand off
 
-When tasks are green and verified, offer `devarm-review` before merge.
+When tasks are green and verified, offer `devarm-review`; after findings are closed,
+`devarm-finish` handles merge/PR/cleanup.

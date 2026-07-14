@@ -23,7 +23,9 @@ approved, which is what keeps decisions out of implementation.
 | 6 | **Analyze** | `devarm-analyze` | severity-ranked findings report | Artifacts consistent AND re-verified vs current code; flagship story traced end-to-end |
 | 7 | Implement | `devarm-implement` | code + green tests | Verification run and confirmed before "done" |
 | 8 | Review | `devarm-review` | review notes + findings ledger | Architecture + QA lens against principles + ledger |
-| 9 | Retro | `devarm-retro` | proposed edits (commits) to this kit | Session analyzed; method improved |
+| 9 | Finish | `devarm-finish` | merged branch / PR / kept / discarded | Fresh full-suite green; four structured options; typed confirm to discard |
+| 10 | Retro | `devarm-retro` | proposed edits (commits) to this kit | Session analyzed; method improved |
+| — | Debug (on-demand) | `devarm-debug` | root cause + failing test + one verified fix | No fix without root cause; 3 failed fixes → question the architecture |
 
 ## When to invoke each skill
 
@@ -39,6 +41,10 @@ approved, which is what keeps decisions out of implementation.
   templates and `constitution.md`; otherwise they fall back to `devarm/templates/`.
 - `devarm-implement` executes tasks one at a time (red → green → refactor → verify → commit).
 - `devarm-review` runs before merge, or whenever a major step completes.
+- `devarm-debug` is invoked **on demand from any phase** the moment a bug, test failure, or
+  unexpected behavior appears — before proposing any fix. Root cause first, always.
+- `devarm-finish` closes the branch once review findings are resolved: fresh full-suite
+  verification, then merge / PR / keep / discard (discard needs typed confirmation).
 - `devarm-retro` runs after a feature ships (or after a painful session) to feed lessons back
   into this kit — it is how devarm improves over time.
 

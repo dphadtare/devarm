@@ -48,7 +48,9 @@ sees them. Restart / reopen your agent tool afterward so it re-scans skill direc
 | 6 | **Analyze** | `devarm-analyze` | findings report | artifacts consistent AND re-verified vs current code; flagship traced |
 | 7 | Implement | `devarm-implement` | code + green tests | verified before "done" |
 | 8 | Review | `devarm-review` | review notes + findings ledger | architecture + QA lens |
-| 9 | Retro | `devarm-retro` | proposed commits to this kit (+ `CHANGELOG.md`) | method improved from the session |
+| 9 | Finish | `devarm-finish` | merge / PR / keep / discard | fresh suite green; typed confirm to discard |
+| 10 | Retro | `devarm-retro` | proposed commits to this kit (+ `CHANGELOG.md`) | method improved from the session |
+| — | Debug | `devarm-debug` (on-demand, any phase) | root cause + failing test + one fix | no fix without root cause |
 
 Two phases make devarm more than a spec/plan flow:
 

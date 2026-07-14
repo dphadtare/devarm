@@ -3,6 +3,24 @@
 Every entry records a method change and the session/failure that motivated it. Maintained by
 `devarm-retro` — a lesson is only "done" when it's a gate in the method, not just a note.
 
+## 2026-07-14 — adopt from the superpowers plugin
+
+Reviewed all 14 superpowers skills. Brainstorming/TDD/plan-writing/verification were already
+absorbed into devarm's phases; adopted the pieces devarm lacked, condensed:
+
+| Change | Source / rationale |
+|--------|--------------------|
+| New `devarm-debug` (on-demand, any phase): 4-phase root-cause-first debugging, no fix-stacking, 3-failed-fixes → question the architecture, parallel subagents for independent failures | `systematic-debugging` + `dispatching-parallel-agents`. devarm had NO debugging discipline — fix loops were its weakest phase |
+| New `devarm-finish` (phase 9): fresh full-suite verification, then exactly four options (merge / PR / keep / discard), typed confirm to discard, worktree cleanup | `finishing-a-development-branch`. devarm previously ended at review with no integration protocol |
+| Implement: verification claim→evidence table ("fresh run in THIS turn"; subagent report ≠ evidence; red-green for regression tests) | `verification-before-completion` — the table format makes "what proves this claim" explicit |
+| Implement: subagent protocol — full task text in prompt (never "read the plan"), two-stage review (spec compliance THEN quality), model sized to task, BLOCKED/NEEDS_CONTEXT handling, never retry unchanged | `subagent-driven-development` — devarm's subagent mode was one sentence |
+| Implement: optional worktree isolation (ignored dir + green baseline before task 1) | `using-git-worktrees`, trimmed to the two safety rules that matter |
+| Review: receiving-feedback discipline — no performative agreement, clarify ALL items before implementing ANY, YAGNI-check reviewer suggestions, push back technically, correct pushback factually | `receiving-code-review` — complements the findings ledger with response behavior |
+
+Not adopted: `using-superpowers` (meta-dispatch — the skills' own descriptions handle
+discovery), `writing-skills` TDD-for-docs (interesting; revisit if retro edits start missing),
+`executing-plans` (parallel-session variant of implement — YAGNI for a solo workflow).
+
 ## 2026-07-14 — adopt code-quality standards from tech-catalyst-v2 rules
 
 Ported the transferable core of the project's `.cursor/rules/` code-quality set

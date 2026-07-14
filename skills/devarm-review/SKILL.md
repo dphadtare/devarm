@@ -4,7 +4,7 @@ description: "Use when a major step completes or before merge, to review the wor
 metadata:
   phase: 8
   produces: "prioritized review notes (blocking / should-fix / nit)"
-  next: "devarm-implement (to address) or merge"
+  next: "devarm-implement (to address) or devarm-finish (to integrate)"
 ---
 
 ## Announce
@@ -70,6 +70,21 @@ session each was wrong once about the same `SKILL.md` issue). Evidence, not auth
 **Check every finding against the Decision Ledger first.** A finding that contradicts a recorded
 `owner: user` decision is `by-design`, not a bug, unless the user explicitly reopens it — this
 stops reviews from re-litigating settled decisions (a real source of churn in a past session).
+
+## Receiving feedback (when you are the implementer working the ledger)
+
+- **No performative agreement.** Never "You're absolutely right!" / "Great point!" / thanks.
+  Restate the technical requirement, or just fix it — the diff is the acknowledgment.
+- **Clarify ALL items before implementing ANY.** For multi-item feedback where some items are
+  unclear: stop and ask about the unclear ones first — items may be related, and partial
+  understanding produces wrong implementations of the clear ones too.
+- **Order of execution:** blocking → simple → complex; test each fix individually.
+- **YAGNI-check "implement it properly" suggestions:** grep for actual usage first. If nothing
+  calls it, propose removal instead of building it out.
+- **Push back with technical reasoning** when a suggestion breaks existing behavior, ignores
+  context, or contradicts a ledger decision — and if your pushback turns out wrong, state the
+  correction factually ("verified — you're correct because X; fixing") and move on. No
+  apologies, no defending.
 
 ## End every review turn with an explicit state split
 
