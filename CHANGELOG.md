@@ -3,6 +3,19 @@
 Every entry records a method change and the session/failure that motivated it. Maintained by
 `devarm-retro` — a lesson is only "done" when it's a gate in the method, not just a note.
 
+## 2026-07-14 — Question Coverage Map in brainstorm
+
+"Ask clarifying questions" said HOW to ask (one at a time, multiple choice) but not WHAT must
+be covered — so question coverage depended on where the dialogue happened to wander. In the
+spec-016 session the brainstorm asked 6 good questions yet never elicited cap semantics or the
+communication surface; both surfaced post-design.
+
+| Change | Rationale |
+|--------|-----------|
+| 8-area Question Coverage Map (purpose, scope+flagship, behavior semantics incl. failure/partial/pause, limits & config with the four sub-answers, compatibility, communication surface, success criteria, trade-off preferences) | Questions are complete when the map is covered, not when the conversation feels done |
+| Follow-the-fork rule: restate what an answer decided, ask the question it opened | User answers often contain 2-3 embedded decisions; interpreting them silently is how decisions get made without the user |
+| Stop condition: all areas answered/N/A AND last answer opened no new fork; skipped questions carried as `assumed — awaiting confirmation` | Aligns brainstorm questioning with the ledger's no-silent-approval rule |
+
 ## 2026-07-14 — deep-dive on superpowers brainstorming + TDD
 
 Line-by-line comparison of the two most important superpowers skills against devarm:

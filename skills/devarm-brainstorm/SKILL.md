@@ -28,8 +28,10 @@ assumptions cause the most wasted work.
 2. **Scope check.** If the idea spans multiple independent subsystems, stop and help decompose
    it into sub-projects first — each gets its own design → spec → plan → implement cycle. Don't
    refine details of something that should be split.
-3. **Ask clarifying questions — one at a time.** Prefer multiple-choice. Focus on purpose,
-   constraints, and success criteria. One question per message; break big topics into several.
+3. **Ask clarifying questions — one at a time.** Prefer multiple-choice with a recommended
+   option first. One question per message; break big topics into several. Work through the
+   Question Coverage Map below — every area answered or explicitly marked N/A/deferred before
+   the design is presented.
 4. **Propose 2-3 approaches** with trade-offs. Lead with your recommendation and why.
 5. **Present the design in sections** scaled to complexity (a few sentences for simple parts,
    up to ~250 words for nuanced ones). Cover: architecture, components, data flow, error
@@ -44,6 +46,34 @@ assumptions cause the most wasted work.
 9. **User approval gate.** Only after grounding passes, ask the user to approve the written,
    grounded design. If they request changes, revise and re-ground.
 10. **Hand off to devarm-spec.** That is the only skill you invoke next.
+
+## Question Coverage Map
+
+The goal of questioning is that the user fills in every detail the design depends on — not
+just the ones the first question happened to touch. Cover each area (or mark it N/A aloud);
+each answer becomes a candidate Decision Ledger row so it can't be re-litigated later.
+
+| Area | What to elicit from the user |
+|------|------------------------------|
+| Purpose | Who is this for, what problem, why now? What triggers it? |
+| Scope boundary | What's explicitly IN and OUT? What's the **flagship scenario** the design must nail? |
+| Behavior semantics | The happy path, then: what happens on failure? Partial success? Pause/resume? What does the user/system see in each case? |
+| Limits & config | Every number or knob, with its four sub-answers up front: bounds what / enforced where / configurable at what granularity / behavior at the limit. Don't accept a bare number. |
+| Compatibility | What existing behavior must remain byte-identical? Who else consumes what this touches? |
+| Communication/UX surface | What messages/notifications/UI does this emit — how many, when, consolidated or per-item? |
+| Success criteria | How will we KNOW it works — measurable, checkable after implementation. |
+| Trade-off preferences | Where the user stands on speed vs safety, cost vs completeness, simple-now vs flexible-later. |
+
+**Questioning rules:**
+
+- **Follow the fork.** If an answer opens a new decision (an answer like "sequential is fine,
+  but the fallback needs expansion" contains 2-3 embedded decisions), play back your
+  restatement of what they decided and ask the next question the answer created — don't move
+  on with your own interpretation.
+- **Unanswered ≠ answered.** If the user skips a question, it does NOT default — carry it
+  forward as `assumed — awaiting confirmation` and re-surface it at the approval gate.
+- **Stop condition:** questioning is done when every map area is answered/N/A **and** the last
+  answer opened no new fork — not when a fixed question count is reached.
 
 ## Design for isolation and clarity
 
