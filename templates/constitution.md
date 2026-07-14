@@ -28,3 +28,9 @@ project already has one, THAT wins — devarm supplies the method, the project s
 ## VII. Own the decisions
 - Every load-bearing choice is recorded in the Decision Ledger with evidence and an owner,
   before implementation.
+
+## VIII. Design patterns & anti-patterns
+- Follow the project's pattern catalog (repository for persistence, DTOs at boundaries,
+  composition over inheritance, caller-owns-transaction, one settings home, one source of
+  truth per type). If the project has none, use `devarm/templates/code-standards.md`.
+- Every pattern rule carries a BAD/GOOD example pair so violations are recognizable in review.

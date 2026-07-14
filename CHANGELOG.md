@@ -3,6 +3,23 @@
 Every entry records a method change and the session/failure that motivated it. Maintained by
 `devarm-retro` — a lesson is only "done" when it's a gate in the method, not just a note.
 
+## 2026-07-14 — adopt code-quality standards from tech-catalyst-v2 rules
+
+Ported the transferable core of the project's `.cursor/rules/` code-quality set
+(`design-patterns`, `architecture-boundaries`, `backend-conventions`, `frontend-conventions`)
+into the kit as `templates/code-standards.md`, stripped of repo-specific paths so it works in
+any stack:
+
+| Change | Rationale |
+|--------|-----------|
+| New `templates/code-standards.md` — prefer/avoid pattern catalog with mandatory BAD/GOOD pairs | The tech-catalyst rules proved that pattern rules only bite when each carries a concrete counter-example |
+| Constitution VIII: design patterns & anti-patterns | Makes the catalog a checked principle, not an optional doc |
+| `devarm-ground` inputs now include the project's pattern catalog (fallback: code-standards) | Reuse legality and pattern conformance are checked at the same grounding read |
+| `devarm-review` architecture lens gains a patterns/anti-patterns check (fat controller, inline queries, leaky ORM, buried commits, view-local fetching, suppression creep) | The review lens previously checked boundaries/duplication but not pattern conformance |
+
+Not ported (stays project-side): repo-specific layering paths, named god-files, stack-specific
+rules (React Query, pydantic-settings) — devarm supplies the method, the project supplies those.
+
 ## 2026-07-14 — final devarm2 delta port (devarm becomes the single active kit)
 
 Side-by-side review confirmed devarm ⊇ devarm2 except two findings-ledger details, now ported:

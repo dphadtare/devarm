@@ -25,6 +25,11 @@ metadata:
 - **Single conventions / no duplication:** any concept (enum, status, constant, type) declared a
   second time instead of reusing its one home? Any half-finished refactor (new way added, old way
   left)?
+- **Patterns / anti-patterns:** does the change follow the project's pattern catalog (or
+  `devarm/templates/code-standards.md` as fallback)? Watch for the classics: fat controller,
+  query built inside a service, ORM objects leaking across the API boundary, commit inside a
+  helper instead of the transaction owner, view-local data fetching, a second persistence
+  style beside the established one, new type/lint suppressions.
 - **Ledger fidelity:** does the implementation match each Decision Ledger row? Flag every drift —
   if the code chose differently than the ledger, either the code is wrong or the ledger must be
   updated with new evidence.

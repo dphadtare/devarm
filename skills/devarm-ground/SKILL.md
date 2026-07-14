@@ -28,8 +28,9 @@ is the drift this kills.
 
 - The draft design doc from `devarm-brainstorm`.
 - The target repo's rules: any architecture-boundary rule, design-principles / file-size rule,
-  no-duplicate-concept rule (check `.cursor/rules/`, `.specify/memory/`, `AGENTS.md`,
-  `CONTRIBUTING.md`). If none exist, apply the devarm defaults in `AGENTS.md`.
+  no-duplicate-concept rule, and pattern/anti-pattern catalog (check `.cursor/rules/`,
+  `.specify/memory/`, `AGENTS.md`, `CONTRIBUTING.md`). If none exist, apply the devarm
+  defaults in `AGENTS.md` and `devarm/templates/code-standards.md`.
 
 ## Process (create a task per step, complete in order)
 
