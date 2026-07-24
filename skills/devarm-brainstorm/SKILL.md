@@ -1,10 +1,10 @@
 ---
 name: "devarm-brainstorm"
-description: "Use before ANY creative work — new feature, component, behavior change, or non-trivial refactor. Turns an idea into an approved, code-grounded design through collaborative dialogue: explore context, ask one question at a time, propose 2-3 approaches, present the design in scaled sections, then run devarm-ground BEFORE approval. Terminal state hands to devarm-spec. Do not write code until the design is grounded and approved."
+description: "Use when the user explicitly asks for devarm/brainstorm, or before consequential code/product changes: new feature, component, behavior change, persistence/contract change, or non-trivial refactor. Do not use for ordinary Q&A, repo exploration, explanations, summaries, simple docs, diagrams, or visualization artifacts unless the user asks for devarm or the work changes runtime behavior, architecture, or the devarm method itself. Turns an idea into an approved, code-grounded design through collaborative dialogue, then runs devarm-ground BEFORE approval. By default, halt after approval and ask whether to run devarm-spec; continue automatically only when the user explicitly requested end-to-end execution."
 metadata:
   phase: 1
   produces: "docs/design/YYYY-MM-DD-<topic>-design.md (draft)"
-  next: "devarm-ground (before approval), then devarm-spec"
+  next: "devarm-ground (before approval), then halt and ask about devarm-spec unless end-to-end was explicitly requested"
 ---
 
 ## Announce
@@ -13,10 +13,16 @@ metadata:
 
 ## Hard gate
 
-Do NOT write code, scaffold, or invoke any implementation skill until a design has been
-presented, **grounded** (devarm-ground), and approved by the user. This applies to every
-project regardless of perceived simplicity — "too simple to design" is where unexamined
-assumptions cause the most wasted work.
+Do NOT write code, scaffold, or invoke any implementation skill for consequential code/product
+changes until a design has been presented, **grounded** (devarm-ground), and approved by the
+user. This applies regardless of perceived simplicity — "too simple to design" is where
+unexamined assumptions cause the most wasted work.
+
+This skill is intentionally not the default for every helpful task. Do not invoke it for ordinary
+Q&A, repo exploration, summaries, explanations, simple README/docs edits, diagrams, or
+visualization artifacts unless the user explicitly asks for devarm or the work changes runtime
+behavior, architecture, or the devarm method itself. If applicability is ambiguous, ask whether
+to use devarm instead of invoking it by default.
 
 ## Checklist (create a task per item, complete in order)
 
@@ -33,12 +39,15 @@ assumptions cause the most wasted work.
      files, no new persistence, no contract changes). The GATES stay, the ARTIFACTS collapse:
      one short doc holds a few-sentence design, a scoped grounding pass (the touched seams +
      whichever of the 10 categories apply), and a mini task list; skip separate spec/plan/
-     analyze docs and go to implement (TDD + verification unchanged). If quick-track work
+     analyze docs. Before implement, run the scoped analyze equivalent in that same doc:
+     re-verify the touched seams against current code, then a mini Pass 3 — play back the
+     control flow and batch the open decisions with recommendations (see `devarm-analyze`
+     Pass 3). Then go to implement (TDD + verification unchanged). If quick-track work
      reveals new persistence, a contract change, or a widening blast radius — STOP and
      upgrade to the standard track; that discovery is the signal, not an obstacle.
    - **Standard track** — everything else: the full pipeline below.
-   Never skip grounding, user approval, TDD, or verification on any track — scale trims
-   paperwork, not gates.
+   Never skip grounding, user approval, the pre-implementation decision batch, TDD, or
+   verification on any track — scale trims paperwork, not gates.
 3. **Ask clarifying questions — one at a time.** Prefer multiple-choice with a recommended
    option first. One question per message; break big topics into several. Work through the
    Question Coverage Map below — every area answered or explicitly marked N/A/deferred before
@@ -56,7 +65,11 @@ assumptions cause the most wasted work.
    to revise sections 4-6; that is expected and is the point.
 9. **User approval gate.** Only after grounding passes, ask the user to approve the written,
    grounded design. If they request changes, revise and re-ground.
-10. **Hand off to devarm-spec.** That is the only skill you invoke next.
+10. **Phase gate / handoff.** Report the design path, grounding result, approval state, and
+    recommended next phase (`devarm-spec`). By default, STOP and ask the user whether to run
+    `devarm-spec`. Invoke `devarm-spec` only if the user explicitly requested end-to-end
+    execution for this work or has just told you to continue. Do not treat silence as approval
+    to continue.
 
 ## Question Coverage Map
 

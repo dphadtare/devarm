@@ -7,7 +7,7 @@ implement → review — expressed as [Agent Skills](https://agents.md) that run
 devarm exists to close one gap: specs and plans stay high-level, so real decisions leak into
 implementation time. devarm forces those decisions — *what does what, when, and how* — into a
 **code-grounded design** with a **Decision Ledger**, before any code is written. You own it; you
-improve it by editing markdown and committing.
+improve it by editing markdown. Agents never create git commits unless you explicitly ask.
 
 ## Why it's portable (no code, no lock-in)
 
@@ -45,20 +45,24 @@ sees them. Restart / reopen your agent tool afterward so it re-scans skill direc
 | 3 | Specify | `devarm-spec` | `spec.md` | quality checklist passes |
 | 4 | Plan | `devarm-plan` | `plan.md` + file map | every requirement → a task, no placeholders |
 | 5 | Tasks | `devarm-tasks` | `tasks.md` | failing-test task before each impl |
-| 6 | **Analyze** | `devarm-analyze` | findings report | artifacts consistent AND re-verified vs current code; flagship traced |
+| 6 | **Analyze** | `devarm-analyze` | findings report + batch-decided implementation decisions | artifacts consistent AND re-verified vs current code; flagship traced; implementation decisions batch-decided |
 | 7 | Implement | `devarm-implement` | code + green tests | verified before "done" |
 | 8 | Review | `devarm-review` | review notes + findings ledger | architecture + QA lens |
 | 9 | Finish | `devarm-finish` | merge / PR / keep / discard | fresh suite green; typed confirm to discard |
-| 10 | Retro | `devarm-retro` | proposed commits to this kit (+ `CHANGELOG.md`) | method improved from the session |
+| 10 | Retro | `devarm-retro` | proposed edits + suggested commit summary (+ `CHANGELOG.md`) | method improved from the session |
 | — | Debug | `devarm-debug` (on-demand, any phase) | root cause + failing test + one fix | no fix without root cause |
 | — | TDD | `devarm-tdd` (core discipline) | test seen to fail first | code-before-test gets deleted |
 
-Two phases make devarm more than a spec/plan flow:
+Three phases make devarm more than a spec/plan flow:
 
 - **Ground** (step 2) runs *inside* brainstorming, before approval, and blocks it until no
   "reuse/wrap/extend existing X" claim survives unverified. See `skills/devarm-ground/SKILL.md`.
-- **Retro** (step 8) turns each session's lessons into commits to devarm itself — the engine that
-  makes the method compound your judgment over time. See `skills/devarm-retro/SKILL.md`.
+- **Analyze** (step 6) ends with an interactive implementation-decision brainstorm: the control
+  flow is walked with you and every foreseeable implementation decision is batch-decided before
+  any code. See `skills/devarm-analyze/SKILL.md`.
+- **Retro** (step 10) turns each session's lessons into proposed edits to devarm itself — the
+  engine that makes the method compound your judgment over time. It suggests a commit summary,
+  but does not commit unless you explicitly ask. See `skills/devarm-retro/SKILL.md`.
 
 ## Owning decisions
 
@@ -66,7 +70,9 @@ devarm treats every load-bearing choice as a **Decision Ledger** row with an own
 
 - **design** (changes intent) → the agent STOPS and asks you.
 - **impl** (trade-off, no intent change) → the agent proceeds with a recommendation but logs it
-  and flags it so you can veto.
+  and flags it so you can veto. Foreseeable trade-offs are batch-decided with you in
+  `devarm-analyze` before coding starts; leftovers are batched at checkpoints, not asked
+  one-by-one mid-flow.
 - **mechanical** → just done.
 - An unanswered question is never a silent yes — it becomes `assumed — awaiting confirmation`.
 
@@ -74,9 +80,27 @@ This is enforced procedurally in `devarm-implement` and `AGENTS.md`, not left as
 
 ## How to use it
 
-In any tool, once installed, just start creative work — the agent will pick up `devarm-brainstorm`
-from the skill `description`, or you can invoke a phase explicitly (e.g. `/devarm-brainstorm`).
-The skills chain to the next phase automatically.
+For the full developer workflow, see [`USER_GUIDE.md`](USER_GUIDE.md).
+
+The short version:
+
+1. Install devarm with `./install.sh`, then restart / reopen your agent tool.
+2. Open the project you want to change.
+3. Ask explicitly: `Use devarm to add <feature>` or invoke a phase directly, such as
+   `devarm-brainstorm`.
+4. By default, the agent stops after each phase gate and asks what to run next.
+
+devarm is for consequential code/product changes, not every chat. Agents should not invoke it for
+ordinary Q&A, repo exploration, summaries, simple docs, diagrams, or visualization artifacts
+unless you ask for devarm or the work changes runtime behavior, architecture, or the devarm
+method itself. If it is unclear whether devarm applies, the agent should ask before invoking it.
+For bugs or failing tests, invoke `devarm-debug`. For merge readiness, invoke `devarm-review`
+and then `devarm-finish`.
+
+To run the whole flow without stopping at every mechanical gate, ask explicitly for end-to-end
+execution, for example: `Use devarm end-to-end for <feature>`. Even then, devarm still stops for
+user approval, design-level decisions, unresolved ledger assumptions, and a failing
+`devarm-analyze` gate.
 
 ## Relationship to spec-kit / other frameworks
 
@@ -90,6 +114,7 @@ Otherwise they fall back to `templates/`. devarm supplies the *method*; the proj
 ```
 devarm/
 ├── AGENTS.md              # the portable brain: pipeline, when to invoke each skill, principles
+├── USER_GUIDE.md          # practical developer workflow and prompts
 ├── install.sh            # symlink skills into .agents/.claude/.codex skill dirs (idempotent)
 ├── skills/               # the source of truth — one folder per phase
 │   ├── devarm-brainstorm/SKILL.md
@@ -107,6 +132,6 @@ devarm/
 
 ## Improving it
 
-Edit a `SKILL.md`, commit. Because installs are symlinks, the change is live everywhere. Treat
-recurring review feedback and mistakes as prompts to tighten a skill — that's how the method
-compounds over time.
+Edit a `SKILL.md`; commit only when you choose to. Because installs are symlinks, the change is
+live everywhere. Treat recurring review feedback and mistakes as prompts to tighten a skill —
+that's how the method compounds over time.

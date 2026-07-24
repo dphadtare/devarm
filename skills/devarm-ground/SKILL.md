@@ -4,7 +4,7 @@ description: "Use DURING brainstorming, after a design is presented and BEFORE t
 metadata:
   phase: 2
   produces: "Detailed Design (grounded) + Decision Ledger sections appended to the design doc"
-  next: "return to devarm-brainstorm approval gate, then devarm-spec"
+  next: "return to devarm-brainstorm approval gate; halt unless end-to-end was explicitly requested"
 ---
 
 ## Why this skill exists
@@ -68,14 +68,14 @@ if it doesn't apply.
 |---|----------|----------------------------------|
 | 1 | Layer / boundary legality | Which layer does each new module live in? All imports legal? Which reuse claims were rejected as illegal, and what replaced them? |
 | 2 | Idempotency / replay | For durable/retryable work: step granularity + key? What makes a re-run produce no duplicates (naming, "already exists" path, unique constraint)? |
-| 3 | Persistence shape + consumer audit | Scalar vs blob vs new table? If new: exact columns, keys, unique constraint, migration id. Then enumerate EVERY existing reader/writer of the old shape (sync/poll jobs, list/detail APIs, dashboards/counts, resume/replay paths, notifications) and mark each in-scope or explicitly out-of-scope. An unlisted consumer is a latent P0. |
+| 3 | Persistence shape + consumer audit | Scalar vs blob vs new table? If new: exact columns, keys, unique constraint, migration id. Then enumerate EVERY existing reader/writer of the old shape (sync/poll jobs, list/detail APIs, dashboards/counts, resume/replay paths, notifications) and mark each in-scope or explicitly out-of-scope. An unlisted consumer is a latent P0. **New-producer variant:** this audit ALSO fires when new code starts *producing* an existing cross-layer/persisted field (a Result/Output flag, list, or status) from a new path — not just when the shape changes. Enumerate the invariants existing consumers already assume about that field (status mapping, persistence filters that silently drop malformed rows, notification routing) and confirm the new producer honors every one; a new producer that violates an implicit invariant (e.g. sets a "partial success" flag with no published artifact) is the same latent P0. **Render-path variant:** when a new/changed field is meant for operator-facing copy (escalation/Jira/Slack messages, handoff `user_message`), name the render function (`build_*_user_message`, `_append_*_sections`, template) and confirm the field is actually rendered — not only attached to `final_output` or notification context. Dict populated + message silent is a latent P0 (spec 022: `partial_findings` vs `escalation_messages.py`). |
 | 4 | Canonical identity / keys | The ONE identifier used across modules; where any other id is mapped to/from it, at which edge only. |
 | 5 | Exact seams / call sites | The precise `file:line` (or function) where new code hooks into existing flow, per hook. |
 | 6 | Determinism / ordering | Any ordering/selection/tiebreak rule so the same input always yields the same output. |
 | 7 | Back-compat / migration | What must stay byte-identical? Rollout story? The single-item / empty / disabled path? |
 | 8 | Failure / degradation | Per failure mode: raise, retry, best-effort-degrade, pause, or escalate? The safe fallback? |
 | 9 | Config / limit semantics | For every numeric or configurable value: (a) what exactly it bounds, (b) where it is enforced, (c) configurability granularity (global / per-entity / per-run + who may override), (d) behavior at the limit (drop / report / escalate + threshold). A bare number is not a decision. Use `devarm/templates/config-decision.md`. |
-| 10 | Runtime contract surfaces | Which prompts, output contracts, and SKILL/instruction files consumed at runtime are affected? Every contract change lists its paired prompt/skill update — skill files ARE runtime artifacts, and unpaired changes ship conflicting guidance to the model. |
+| 10 | Runtime contract surfaces | Which prompts, output contracts, and SKILL/instruction files consumed at runtime are affected? Three sub-checks: **(a) Pairing** — every contract change lists its paired prompt/skill update (skill files ARE runtime artifacts; unpaired changes ship conflicting guidance). **(b) Value grounding** — every runtime value a prompt/skill/contract *states* (enum member, threshold, constant, id format) is cited to its source symbol `file:line`; a stated number/enum that isn't grounded against code is drift waiting to happen. **(c) Directive context sweep** — for any prompt-injected instruction gated on a runtime value, enumerate EVERY context that builds that prompt and confirm the instruction stays true (or is suppressed) in each; a directive correct on the primary path can contradict an authoritative block on an expansion/variant path (e.g. a count that means "single-repo app" on one path but "pinned to one repo" mid-coordinated-fix on another). |
 
 ### Step 4 — Write Detailed Design + Decision Ledger into the design doc
 
@@ -101,8 +101,11 @@ Report the checklist. The design is approval-ready only when all hold:
 - [ ] All ten decision categories answered or explicitly N/A.
 - [ ] Every config/limit value has its four sub-answers (bounds what / enforced where /
       granularity / at-limit behavior).
-- [ ] Every changed data shape has a consumer audit; every changed contract has its paired
-      prompt/skill update listed.
+- [ ] Every changed data shape — and every existing cross-layer field a new path starts
+      producing — has a consumer audit; every changed contract has its paired
+      prompt/skill update listed; every runtime value a prompt/skill states is grounded to its
+      source `file:line`; every runtime-gated prompt directive is swept across all
+      prompt-building contexts.
 - [ ] Detailed Design + Decision Ledger written to the design doc.
 - [ ] Every ledger row has evidence; every `owner: user` row surfaced; no row silently defaulted
       from an unanswered question.

@@ -1,10 +1,10 @@
 ---
 name: "devarm-analyze"
-description: "Use after devarm-tasks and BEFORE devarm-implement — a mandatory read-only gate with two passes: (1) cross-artifact consistency (design ↔ spec ↔ plan ↔ tasks ↔ Decision Ledger), and (2) architecture-vs-codebase verification that re-checks every integration claim against the CURRENT code, since the repo may have moved since grounding. Also traces the flagship user story end-to-end on paper. Blocks implementation until CRITICAL/HIGH findings are resolved. Also usable as a re-gate after large fix batches."
+description: "Use after devarm-tasks and BEFORE devarm-implement — a mandatory gate with three passes: (1) cross-artifact consistency (design ↔ spec ↔ plan ↔ tasks ↔ Decision Ledger), (2) architecture-vs-codebase verification that re-checks every integration claim against the CURRENT code, since the repo may have moved since grounding, and (3) an interactive implementation-decision brainstorm — a control-flow walkthrough with the user that batch-decides every foreseeable implementation decision before any code. Also traces the flagship user story end-to-end on paper. Blocks implementation until CRITICAL/HIGH findings are resolved and Pass 3 decisions are recorded. Also usable as a scoped re-gate after course corrections or large fix batches. By default, halt after the analyze report and ask whether to run devarm-implement; continue automatically only when the user explicitly requested end-to-end execution."
 metadata:
   phase: 6
-  produces: "analysis report (severity-ranked findings); implementation blocked until CRITICAL/HIGH resolved"
-  next: "devarm-implement (once clean)"
+  produces: "analysis report (severity-ranked findings) + batch-decided implementation decisions in the ledger; implementation blocked until CRITICAL/HIGH resolved"
+  next: "halt and ask about devarm-implement once clean unless end-to-end was explicitly requested"
 ---
 
 ## Why this skill exists
@@ -15,6 +15,11 @@ that is async, an assumed-wired component that is dead scaffolding, an evidence 
 the flagship use case. Those are the failures that surface as mid-implementation flip-flops. And
 because grounding happened at design time, the repo may have moved since. This gate catches both
 classes right before any code is written.
+
+Passes 1 and 2 are agent-driven verification. Pass 3 exists because verification alone still
+leaves decisions to surface piecemeal during coding — where question fatigue makes the user
+"go with the flow" and lets control-flow changes through unexamined. Pass 3 pulls those
+decisions into one interactive sitting before implementation starts.
 
 ## Announce
 
@@ -32,7 +37,8 @@ Load the design (incl. Detailed Design + Decision Ledger), spec, plan, and tasks
   ID schemes) — one canonical name/ID everywhere.
 - **Duplication / contradiction:** conflicting statements between artifacts; if two planning
   artifacts describe the same work, ONE is declared canonical and the other references it.
-- **Ledger status:** no row still `assumed — awaiting confirmation` — resolve with the user now.
+- **Ledger status:** flag every row still `assumed — awaiting confirmation` — these get resolved
+  with the user in Pass 3, never carried into implementation.
 
 ## Pass 2 — Architecture-vs-codebase verification (read-only)
 
@@ -49,6 +55,35 @@ CURRENT working tree:
 - **Runtime contracts:** every contract change in the plan has its paired prompt/SKILL update
   task, and the current runtime files match what the plan assumes they say.
 
+## Pass 3 — Implementation-decision brainstorm (interactive, with the user)
+
+This is a dialogue, not a report. Run it after Passes 1–2 are clean (or their findings are
+resolved), in this order:
+
+1. **Control-flow walkthrough.** Narrate the functional/control flow of the flagship scenario
+   AND each major failure/edge path through the planned components, as short numbered flows the
+   user can read and object to ("A receives X → validates via B → on failure does C…"). Pause
+   after each flow for confirmation. An objection is a reopened decision → handle via
+   `devarm-brainstorm`'s back-and-forth protocol (supersede + ripple-check), not an inline patch.
+2. **Enumerate the foreseeable implementation decisions.** Collect into one list: (a) every
+   ledger row still `assumed — awaiting confirmation` or `owner: user` and undecided; (b) every
+   implementation trade-off visible from the plan/tasks (module placement, error-handling
+   strategy, retry/timeout choices, back-compat shims, library selection); (c) every fork the
+   walkthrough surfaced.
+3. **Batch-present with recommendations.** One list, each item carrying
+   `**Recommended:** <option> — <1-2 line reason>`; tell the user a plain "yes" accepts all
+   recommendations, or they can override per item. List `owner: user` design-level items FIRST
+   and under their own heading, separate from routine trade-offs, so a batch "yes" never buries
+   an intent-level decision. Record every answer as a Decision Ledger row.
+4. **Exit criterion.** The target is that `devarm-implement` asks the user near-zero questions:
+   only genuine design-level surprises may interrupt coding. A foreseeable trade-off that still
+   surfaces mid-implementation is a Pass-3 miss — `devarm-implement` logs it for `devarm-retro`.
+
+**Scoped re-runs.** When analyze is re-run scoped (after a course correction, drift, or a large
+fix batch), Pass 3 covers ONLY the flows and decisions the change touched; previously confirmed
+flows and recorded ledger decisions stand unless the change superseded them. Never re-walk the
+whole feature — that recreates the question fatigue this pass exists to remove.
+
 ## Output
 
 A severity-ranked findings table: `ID | Category | Severity (CRITICAL/HIGH/MEDIUM/LOW) |
@@ -62,4 +97,11 @@ Location(s) | Summary | Recommendation`. Then:
 ## Gate
 
 Do not hand to `devarm-implement` until Pass 1 and Pass 2 report zero unresolved CRITICAL/HIGH
-findings. State the final result explicitly ("analyze clean" or the accepted residuals).
+findings AND Pass 3 is complete: every walked flow confirmed, the decision batch answered and
+recorded in the ledger, and no row left `assumed — awaiting confirmation`. State the final
+result explicitly ("analyze clean" or the accepted residuals).
+
+By default, STOP after the report and ask the user whether to run `devarm-implement`. Invoke
+`devarm-implement` only if analyze is clean AND the user explicitly requested end-to-end
+execution for this work or has just told you to continue. Do not treat silence as approval to
+begin implementation.

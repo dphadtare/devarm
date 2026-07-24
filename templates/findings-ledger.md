@@ -13,7 +13,8 @@ raw review transcripts — add rows here instead.
   decision is not a bug — mark it `by-design (D<n>)` unless the user reopens the decision.
 - `status` moves through: `open → fixed | deferred | rejected | by-design`. Never delete a row;
   supersede it. Status strictness:
-  - **fixed** — only after verification output is seen (test/lint run); cite the commit/diff.
+  - **fixed** — only after verification output is seen (test/lint run); cite the commit if one
+    was explicitly authorized, otherwise cite the diff/checkpoint.
   - **deferred** — real but consciously postponed; MUST carry a tracked task id.
   - **rejected / by-design** — evidence recorded so it is never re-litigated.
 
@@ -21,9 +22,9 @@ raw review transcripts — add rows here instead.
 
 | ID | Source | Claim | Severity | Verdict + evidence (file:line) | Status | Owner |
 |----|--------|-------|----------|-------------------------------|--------|-------|
-| F1 | <review pass / session> | <what the reviewer claims is wrong> | blocking \| should-fix \| nit | <confirmed/refuted + `path:line`> | open \| fixed (<commit>) \| deferred (<task id>) \| rejected \| by-design (D<n>) | user \| agent |
+| F1 | <review pass / session> | <what the reviewer claims is wrong> | blocking \| should-fix \| nit | <confirmed/refuted + `path:line`> | open \| fixed (<commit or diff/checkpoint>) \| deferred (<task id>) \| rejected \| by-design (D<n>) | user \| agent |
 
 ## Turn close (every review/fix turn)
 
-- **Already fixed this turn:** <ids + commit/diff>
+- **Already fixed this turn:** <ids + commit if authorized, otherwise diff/checkpoint>
 - **Awaiting your decision:** <ids needing the user's call>

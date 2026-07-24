@@ -2,7 +2,7 @@
 name: "devarm-finish"
 description: "Use when implementation is complete, review findings are closed, and the work needs to be integrated. Verifies the full test suite fresh, then presents exactly four options (merge locally / push + PR / keep branch / discard) and executes the choice, including worktree cleanup. Never merges on failing tests; never discards without typed confirmation."
 metadata:
-  phase: 10
+  phase: 9
   produces: "merged branch, opened PR, preserved branch, or (confirmed) discarded work"
   next: "devarm-retro (recommended after ship)"
 ---
@@ -16,6 +16,13 @@ metadata:
 Run the project's FULL test suite (and lint/type gates) now, in this turn. If anything fails,
 stop and report the failures — there are no integration options until green. A pass from an
 earlier turn does not count.
+
+**Env bleed sanity check:** if failures involve `Settings()` defaults, integration status flags,
+or dry-run toggles with no feature-code change, inspect developer `backend/.env` (or equivalent)
+leaking into tests before blaming the branch — fix or document `conftest` isolation first (spec
+022: `PR_CREATION_DRY_RUN` / Guru creds). If optional deps block part of the suite (e.g.
+`tree_sitter_python`), state the exclusion explicitly in the verification report; do not treat
+"full suite" as green while silently skipping paths.
 
 Also confirm the findings ledger has no `open` blocking rows and the Decision Ledger has no
 `assumed — awaiting confirmation` rows.

@@ -5,7 +5,8 @@ shipped code with **no rethinking left for implementation time**. It is expresse
 [Agent Skills](https://agents.md) (`SKILL.md`) plus this `AGENTS.md`, so the same source of
 truth runs in **Cursor, OpenAI Codex, GitHub Copilot, and Claude Code** without duplication.
 
-You own it. You improve it by editing markdown and committing — no code, no vendor lock-in.
+You own it. You improve it by editing markdown; you decide when to commit — no code, no vendor
+lock-in.
 
 ## The pipeline
 
@@ -20,27 +21,52 @@ approved, which is what keeps decisions out of implementation.
 | 3 | Specify | `devarm-spec` | `spec.md` (WHAT/WHY, testable) | Spec quality checklist passes |
 | 4 | Plan | `devarm-plan` | `plan.md` + file-structure map | Every requirement maps to a task; no placeholders |
 | 5 | Tasks | `devarm-tasks` | `tasks.md` (tests-first, ordered) | Each behavior has a failing test task before impl |
-| 6 | **Analyze** | `devarm-analyze` | severity-ranked findings report | Artifacts consistent AND re-verified vs current code; flagship story traced end-to-end |
+| 6 | **Analyze** | `devarm-analyze` | severity-ranked findings report + batch-decided implementation decisions | Artifacts consistent AND re-verified vs current code; flagship story traced end-to-end; remaining implementation decisions batch-decided with the user |
 | 7 | Implement | `devarm-implement` | code + green tests | Verification run and confirmed before "done" |
 | 8 | Review | `devarm-review` | review notes + findings ledger | Architecture + QA lens against principles + ledger |
 | 9 | Finish | `devarm-finish` | merged branch / PR / kept / discarded | Fresh full-suite green; four structured options; typed confirm to discard |
-| 10 | Retro | `devarm-retro` | proposed edits (commits) to this kit | Session analyzed; method improved |
+| 10 | Retro | `devarm-retro` | proposed edits + suggested commit summary | Session analyzed; method improved |
 | — | Debug (on-demand) | `devarm-debug` | root cause + failing test + one verified fix | No fix without root cause; 3 failed fixes → question the architecture |
 | — | TDD (core discipline) | `devarm-tdd` | behavior locked by a test seen to fail first | No production code without a failing test; code-before-test gets deleted |
 
 ## When to invoke each skill
 
-- Any creative work (new feature, component, behavior change) **starts** with
-  `devarm-brainstorm`. Do not write code before a design exists and is approved.
+- **Invocation policy:** devarm is not the default for every chat. Use it when the user asks for
+  devarm / a specific `devarm-*` phase, or when the requested work is a consequential code or
+  product change that needs decisions locked before implementation: new feature, behavior
+  change, component, persistence/contract change, non-trivial refactor, bug fix requiring root
+  cause/TDD, implementation, review, finish, or retro. Do **not** invoke devarm for ordinary
+  Q&A, repo exploration, explanations, summaries, simple README/docs edits, diagrams, or
+  visualization artifacts unless the user explicitly asks to use devarm or the work would change
+  runtime behavior, architecture, or the devarm method itself. If applicability is ambiguous,
+  ask whether to use devarm instead of invoking it by default.
+- **Default phase transition policy:** halt after each phase gate, report the artifact/result, and
+  ask the user what to run next. Do not automatically invoke the next phase unless the user has
+  explicitly requested end-to-end execution for this work or has just told you to continue. Even
+  in end-to-end mode, never skip user approval gates, design-level decisions, unresolved
+  `assumed — awaiting confirmation` ledger rows, or the clean `devarm-analyze` requirement
+  before implementation.
+- **Git commit policy:** never run `git commit` unless the developer explicitly asks for that
+  commit in the current context. Completing a task, phase, retro, review fix, or end-to-end run
+  is not implicit commit permission. When a logical commit point is reached, report the changed
+  files, verification evidence, and a suggested commit message; wait for confirmation.
+- Consequential creative work (new feature, component, behavior change, persistence/contract
+  change, or non-trivial refactor) **starts** with `devarm-brainstorm`. Do not write code for
+  those changes before a design exists and is approved.
 - `devarm-ground` runs **inside** brainstorming, after the design is presented and **before**
   the user approves it. It is the difference between this method and a plain spec/plan flow.
 - `devarm-analyze` is the **mandatory gate between tasks and implement** — artifact
-  self-consistency is not the same as artifact-vs-code truth; both passes must be clean, and the
-  flagship user story must trace end-to-end without a gate rejecting it.
+  self-consistency is not the same as artifact-vs-code truth; both verification passes must be
+  clean, and the flagship user story must trace end-to-end without a gate rejecting it. Its
+  closing pass is an **implementation-decision brainstorm**: an interactive control-flow
+  walkthrough (flagship + failure paths) that batch-decides every foreseeable implementation
+  decision with the user, so `devarm-implement` asks near-zero questions and only genuine
+  design-level surprises may interrupt coding.
 - `devarm-spec` → `devarm-plan` → `devarm-tasks` turn the grounded design into executable work.
   If a `.specify/` (spec-kit) directory exists in the target repo, these skills reuse its
   templates and `constitution.md`; otherwise they fall back to `devarm/templates/`.
-- `devarm-implement` executes tasks one at a time (red → green → refactor → verify → commit).
+- `devarm-implement` executes tasks one at a time (red → green → refactor → verify → report a
+  commit-ready checkpoint; commit only with explicit developer confirmation).
 - `devarm-review` runs before merge, or whenever a major step completes.
 - `devarm-debug` is invoked **on demand from any phase** the moment a bug, test failure, or
   unexpected behavior appears — before proposing any fix. Root cause first, always.
@@ -50,7 +76,8 @@ approved, which is what keeps decisions out of implementation.
 - `devarm-finish` closes the branch once review findings are resolved: fresh full-suite
   verification, then merge / PR / keep / discard (discard needs typed confirmation).
 - `devarm-retro` runs after a feature ships (or after a painful session) to feed lessons back
-  into this kit — it is how devarm improves over time.
+  into this kit — it is how devarm improves over time. It may propose a commit, but must not
+  create one without explicit developer confirmation.
 
 ## Decision ownership (applies in every phase, especially implementation)
 
@@ -60,8 +87,11 @@ ad-hoc fix loops outside the pipeline — classify and act:
 - **Design-level** (drop/replace a designed component, change semantics or user-visible
   behavior) → **STOP and ask the user**; record in the Decision Ledger.
 - **Implementation trade-off** (module placement, error strategy, back-compat shim) → **proceed
-  with the recommended option, but log it in the ledger and flag it in the turn summary** so it
-  can be vetoed.
+  with the recommended option, log it in the ledger, and surface it batched** — at the next
+  checkpoint inside the pipeline, or in the turn summary in ad-hoc loops — so it can be vetoed.
+  Inside the pipeline, foreseeable trade-offs are batch-decided in `devarm-analyze` Pass 3 (or
+  the quick-track mini batch) before coding starts; one asked mid-task is a Pass-3 miss to log
+  for retro.
 - **Mechanical** (naming, test layout) → just do it.
 - **Unanswered ≠ approval.** Silence on a question becomes a ledger row `assumed — awaiting
   confirmation`, surfaced — never a silent yes.

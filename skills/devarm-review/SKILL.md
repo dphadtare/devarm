@@ -33,13 +33,20 @@ metadata:
 - **Ledger fidelity:** does the implementation match each Decision Ledger row? Flag every drift —
   if the code chose differently than the ledger, either the code is wrong or the ledger must be
   updated with new evidence.
+- **Runtime prompt/directive sweep:** if the change adds or edits a prompt-injected instruction
+  gated on a runtime value, confirm it holds (or is suppressed) in EVERY context that builds that
+  prompt — primary vs expansion/variant. A directive true on one path can contradict an
+  authoritative block in the same prompt on another (a real bug in a past session: a "single
+  linked repository" directive fired on a pinned expansion pass that carried a multi-repo plan).
 
 ### QA lens
 - **Test coverage of behavior** (not just lines): does each spec requirement have a test? Are
   failure modes, edge cases, empty/single/disabled paths, and idempotency/replay tested?
 - **Determinism:** are ordering/tiebreak rules actually enforced and tested?
 - **Verification evidence:** were tests/lints/types actually run green? Ask for the output if not
-  shown.
+  shown. Re-derive "done" from the repo itself (grep for the named test / read the file), never
+  from a prior session summary or an implementer's claim — in a past session a compaction summary
+  asserted wording-lock tests that were absent from the codebase.
 - **UX / contract consistency:** does observable behavior match the spec's success criteria?
 
 ## Output
@@ -67,6 +74,12 @@ items.
 verdict — a reviewer's finding can be wrong, and so can an implementer's rebuttal (in a past
 session each was wrong once about the same `SKILL.md` issue). Evidence, not authority.
 
+**Challenge before fix-all.** When the findings ledger has multiple HIGH/Should-fix items — or
+after an external `/findgap` pass — pressure-test each against grounded design, Decision Ledger
+rows, and real consumers before implementing all of them. Overreach (spec 022: SC-005 "missing
+render" while `possible_causes` + `best_repo_evidence` already surfaced) wastes a fix cycle;
+defer or downgrade items that contradict locked decisions or grounded design.
+
 **Check every finding against the Decision Ledger first.** A finding that contradicts a recorded
 `owner: user` decision is `by-design`, not a bug, unless the user explicitly reopens it — this
 stops reviews from re-litigating settled decisions (a real source of churn in a past session).
@@ -90,7 +103,8 @@ stops reviews from re-litigating settled decisions (a real source of churn in a 
 
 Close each turn with two labeled lists so "fix the issues found" is never ambiguous:
 
-- **Already fixed this turn** — with the commit/diff.
+- **Already fixed this turn** — with the commit if explicitly authorized, otherwise with the
+  diff/checkpoint evidence.
 - **Awaiting your decision** — findings that need the user's call before action.
 
 (Ambiguity here caused duplicate "fix it" turns on already-applied fixes in a past session.)

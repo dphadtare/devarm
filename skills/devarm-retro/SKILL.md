@@ -1,10 +1,10 @@
 ---
 name: "devarm-retro"
-description: "Use after a feature ships, or after a painful/back-and-forth session, to turn the session into improvements to the devarm method itself. Analyzes a session transcript, compares what happened against the pipeline, identifies decisions made late / bugs that a gate should have caught / avoidable back-and-forth, and proposes concrete commits to the devarm repo (new gate, template change, taxonomy tweak). This is how devarm compounds your judgment over time."
+description: "Use after a feature ships, or after a painful/back-and-forth session, to turn the session into improvements to the devarm method itself. Analyzes a session transcript, compares what happened against the pipeline, identifies decisions made late / bugs that a gate should have caught / avoidable back-and-forth, and proposes concrete edits plus a suggested commit summary for the devarm repo. Never run git commit unless the developer explicitly asks for that commit. This is how devarm compounds your judgment over time."
 metadata:
-  phase: 9
-  produces: "a retro report + proposed edits (commits) to the devarm kit"
-  next: "commit the accepted changes to devarm"
+  phase: 10
+  produces: "a retro report + proposed edits + suggested commit summary"
+  next: "wait for developer confirmation before any git commit"
 ---
 
 ## Announce
@@ -68,17 +68,19 @@ one-line rationale tied to the finding. Prefer procedural checklist steps with h
 soft prose. **Only recurring (≥2 occurrences) or one severe failure earns a method change** —
 resist adding a rule for every one-off.
 
-### Step 5 — Record and commit
+### Step 5 — Record and propose a commit
 
 - Append a dated entry to `CHANGELOG.md` (what changed, which session/failure motivated it). Each
-  retro is one commit to the devarm repo.
-- Present the proposed edits to the user for approval before committing (editing the method is
-  itself a design-level decision — the user owns it).
+  retro should identify one logical commit boundary, but the skill must not create the commit by
+  default.
+- Present the proposed edits, changed files, verification evidence, and a suggested commit
+  message. Wait for explicit developer confirmation before running `git commit` (editing the
+  method is itself a design-level decision — the user owns it).
 
 ## Anti-patterns
 
 - Retro notes that end as a document instead of a diff to this repo — the lesson isn't learned
-  until it's a gate.
+  until it's a gate. The diff may remain uncommitted until the developer confirms.
 - Adding a new rule for every one-off — only recurring or severe failures earn a method change.
 - Growing skills past the point where they get read — prefer tightening an existing gate over
   adding a new one.

@@ -1,10 +1,10 @@
 ---
 name: "devarm-spec"
-description: "Use after a design is grounded (devarm-ground) and approved, to produce a testable specification. Turns the WHAT/WHY of the design into unambiguous, testable functional requirements, user scenarios, and measurable, technology-agnostic success criteria. Reuses spec-kit templates if a .specify/ directory exists; otherwise uses devarm/templates. Hands off to devarm-plan."
+description: "Use after a design is grounded (devarm-ground) and approved, to produce a testable specification. Turns the WHAT/WHY of the design into unambiguous, testable functional requirements, user scenarios, and measurable, technology-agnostic success criteria. Reuses spec-kit templates if a .specify/ directory exists; otherwise uses devarm/templates. By default, halt after the spec gate and ask whether to run devarm-plan; continue automatically only when the user explicitly requested end-to-end execution."
 metadata:
   phase: 3
   produces: "spec.md + a spec quality checklist"
-  next: "devarm-plan"
+  next: "halt and ask about devarm-plan unless end-to-end was explicitly requested"
 ---
 
 ## Announce
@@ -60,4 +60,7 @@ Validate the spec against this checklist; iterate (max 3 passes) until it passes
 
 ## Hand off
 
-Report the spec path and checklist result, then invoke `devarm-plan`.
+Report the spec path, checklist result, and recommended next phase (`devarm-plan`). By default,
+STOP and ask the user whether to run `devarm-plan`. Invoke `devarm-plan` only if the user
+explicitly requested end-to-end execution for this work or has just told you to continue. Do not
+treat silence as approval to continue.

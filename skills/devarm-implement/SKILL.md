@@ -1,9 +1,9 @@
 ---
 name: "devarm-implement"
-description: "Use to execute a tasks.md produced by devarm-tasks. Runs tasks one at a time with strict TDD (red → green → refactor), verifies with real command output before claiming anything is done, and commits frequently. Optionally dispatches a fresh subagent per task with review between tasks. Ends by offering devarm-review."
+description: "Use to execute a tasks.md produced by devarm-tasks. Runs tasks one at a time with strict TDD (red → green → refactor), verifies with real command output before claiming anything is done, and reports commit-ready checkpoints. Never run git commit unless the developer explicitly asks for that commit. Optionally dispatches a fresh subagent per task with review between tasks. Ends by offering devarm-review."
 metadata:
   phase: 7
-  produces: "working code with green tests, committed incrementally"
+  produces: "working code with green tests + commit-ready checkpoint summaries"
   next: "devarm-review"
 ---
 
@@ -11,10 +11,22 @@ metadata:
 
 "I'm using devarm-implement to execute the plan task-by-task with TDD and verification."
 
-## Precondition
+## Preconditions
 
-`devarm-analyze` must report clean (no unresolved CRITICAL/HIGH) before coding starts. If it
-hasn't run since the last artifact/code change, run it first.
+1. `devarm-analyze` must report clean (no unresolved CRITICAL/HIGH, Pass 3 decisions recorded)
+   before coding starts — or, on the brainstorm quick track, its scoped equivalent recorded in
+   the quick-track doc (touched seams re-verified + mini Pass 3 decision batch). If neither has
+   run since the last artifact/code change, run the appropriate one first.
+2. **Feature branch before task 1.** Create or checkout `NNN-short-name` (or project convention)
+   before the first implementation edit — do not accumulate the full feature uncommitted on
+   `main` (spec 022: entire feature landed on `main`, branch/commit only at finish).
+3. **Design anchor — run before task 1, and again whenever resuming in a new session.** Locate
+   the governing design doc + Decision Ledger for this work and play back, in 3-5 bullets, the
+   constraints that bind implementation (architecture, boundaries, key ledger decisions). The
+   written design and ledger govern over session memory: what the current conversation drifted
+   toward NEVER overrides what the approved doc says. If landed code or new instructions
+   contradict the doc, that is the drift rule / course-correction protocol below — not a silent
+   re-design from session context.
 
 ## Execution loop (per task)
 
@@ -28,18 +40,26 @@ written before its test, RED must FAIL not error, test-quality rules, anti-patte
    rest of the suite stays green.
 3. **Refactor** — improve while keeping tests green. No new behavior.
 4. **Verify** — run the relevant test/lint/type commands and read the ACTUAL output. Do not
-   claim "done", "fixed", or "passing" without command output confirming it.
-5. **Commit** — small, focused commit. Only commit when the user has asked you to commit, per
-   the repo's git rules; otherwise stage and report.
+   claim "done", "fixed", or "passing" without command output confirming it. **Mirror CI, not
+   the IDE:** run the SAME gate commands CI runs (discover them from the CI config — e.g.
+   `mypy .`, `ruff check .`), because editor/IDE diagnostics (ReadLints) do NOT invoke the CI
+   type-checker. Code that passes tests + IDE lints but fails `mypy .` still breaks the build.
+5. **Checkpoint** — report the changed files, verification evidence, any trade-off ledger rows
+   logged since the last checkpoint (batched for veto, per the batching rule below), and a
+   suggested commit message. Never run `git commit` unless the developer explicitly asks for
+   that commit. Do not treat task completion, phase completion, or end-to-end mode as commit
+   permission.
 
 ## Commit and checkpoint discipline
 
-- **Commit at phase/task boundaries on the feature branch** (once the user has authorized
-  committing). Long uncommitted runs make fixes untrackable, cause duplicate "fix the issues"
-  loops, and leave no bisectable history — a real cost in a past session where ~6 hours stayed
-  uncommitted through 10+ fix rounds. A "don't commit to main" preference is not a reason to
-  leave the feature branch uncommitted. If the user forbids all commits, say explicitly what
-  risk that carries and keep a running staged-state summary instead.
+- **Prepare commit-ready checkpoints at phase/task boundaries.** A checkpoint includes changed
+  files, verification evidence, and a suggested commit message. It is advisory until the
+  developer confirms. Long uncommitted runs make fixes harder to audit, so surface that risk,
+  but never solve it by committing without permission.
+- **Explicit commit confirmation required.** Acceptable confirmations are direct instructions
+  such as "commit this", "commit after each task", or "create the checkpoint commit now". If the
+  user only says "continue", "done", "looks good", or asks for end-to-end execution, do not
+  commit; continue with uncommitted changes and keep reporting checkpoint summaries.
 - **Checkpoint before entering a god-file or high-coupling zone.** Pause, confirm the seam and
   the line budget with the user, then proceed. Pure/foundational modules first; risky binding
   layers last, behind a checkpoint.
@@ -53,7 +73,7 @@ written before its test, RED must FAIL not error, test-quality rules, anti-patte
 | Claim | Requires | Not sufficient |
 |-------|----------|----------------|
 | Tests pass | fresh test run: 0 failures | earlier run, "should pass" |
-| Lint/types clean | fresh tool output: 0 errors | partial check |
+| Lint/types clean | fresh CI-gate output (e.g. `mypy .`, `ruff check .`): 0 errors | IDE/editor diagnostics; skipping the CI type-checker |
 | Build succeeds | build exit 0 | lint passing |
 | Bug fixed | original symptom re-tested | code changed, assumed fixed |
 | Regression test works | red-green verified (fails without fix, passes with) | test passed once |
@@ -75,6 +95,14 @@ consequential ones. When a decision point arises, classify it and act accordingl
   recommended option, but log it as a ledger row AND flag it in the turn summary** so the user
   can veto.
 - **Mechanical** — naming, test layout, formatting, obvious-correct choices. → **Just do it.**
+
+**Batching rule (question fatigue is a drift vector).** Foreseeable trade-offs were already
+batch-decided in `devarm-analyze` Pass 3 (or the quick-track mini batch). Mid-implementation,
+do NOT interrupt with trade-off
+questions one at a time: proceed with the recommended option, log the ledger row, and present
+all accumulated trade-offs together at the next checkpoint for veto. Only design-level
+decisions interrupt immediately. A foreseeable trade-off that still surfaces mid-task is a
+Pass-3 miss — note it explicitly so `devarm-retro` can tighten the method.
 
 **Unanswered question ≠ silent approval.** If you asked the user something and got no answer, do
 NOT treat silence as a yes. Record an explicit ledger row marked `assumed — awaiting

@@ -1,10 +1,10 @@
 ---
 name: "devarm-plan"
-description: "Use after devarm-spec to produce an implementation plan an engineer with zero context could execute. Maps the file structure (what each file is responsible for), then breaks work into bite-sized TDD steps with exact paths and real code — no placeholders. Reuses spec-kit plan/data-model/contracts templates if .specify/ exists. Hands off to devarm-tasks."
+description: "Use after devarm-spec to produce an implementation plan an engineer with zero context could execute. Maps the file structure (what each file is responsible for), then breaks work into bite-sized TDD steps with exact paths and real code — no placeholders. Reuses spec-kit plan/data-model/contracts templates if .specify/ exists. By default, halt after the plan gate and ask whether to run devarm-tasks; continue automatically only when the user explicitly requested end-to-end execution."
 metadata:
   phase: 4
   produces: "plan.md (+ data-model.md, contracts/ if applicable) with a file-structure map"
-  next: "devarm-tasks"
+  next: "halt and ask about devarm-tasks unless end-to-end was explicitly requested"
 ---
 
 ## Announce
@@ -15,7 +15,8 @@ metadata:
 
 Write the plan assuming the engineer is skilled but knows almost nothing about this codebase or
 problem domain, and doesn't know good test design. Document everything: which files to touch per
-task, the actual code, how to test it, what to check. DRY, YAGNI, TDD, frequent commits.
+task, the actual code, how to test it, what to check. DRY, YAGNI, TDD, frequent commit-ready
+checkpoints. Actual commits require explicit developer confirmation.
 
 ## Steps
 
@@ -35,15 +36,22 @@ task, the actual code, how to test it, what to check. DRY, YAGNI, TDD, frequent 
    plan template. Otherwise inline the equivalent (entities, interfaces) in `plan.md`.
 5. **Give integration seams the same contract treatment as modules.** Pure modules are rarely
    where bugs live — **binding/integration seams are** (in a past session, nearly every
-   post-implementation bug was in the seam left as "confirm during coding"). For each seam
+   post-implementation bug was in the seam left as "confirm during coding"; spec 022 repeated
+   this: `gathered_info` alias drift, workflow-level import for mocks). For each seam
    (where new code hooks into existing flow, crosses a process/worktree boundary, or persists
-   shared state) specify: exact call site, inputs/outputs, idempotency/replay behavior, and
-   failure posture. If a seam genuinely cannot be specified yet, add an explicit **spike task**
+   shared state) specify: exact call site, inputs/outputs, idempotency/replay behavior,
+   failure posture, **shared mutable context sync** (which objects must hold the same dict
+   reference — e.g. `diagnostic_context.gathered_info` ↔ `rem_context.gathered_info`), and
+   **integration-test patch target** (patch where the caller imports — e.g.
+   `backend.workflows.remediation_workflow.apply_*` — not only the defining module). If a seam
+   genuinely cannot be specified yet, add an explicit **spike task**
    to resolve it BEFORE the implementation task that depends on it — never defer it into the
    impl task itself.
 6. **Decompose into bite-sized tasks.** Each step is ONE action (2-5 min): write the failing
-   test → run it (expect fail) → minimal implementation → run test (expect pass) → commit. Show
-   the ACTUAL code and the ACTUAL command + expected output in each step.
+   test → run it (expect fail) → minimal implementation → run test (expect pass) → report a
+   commit-ready checkpoint. Show the ACTUAL code and the ACTUAL command + expected output in
+   each step. Do not instruct the implementer to run `git commit` unless the developer has
+   explicitly authorized commits.
 
 ## No placeholders (these are plan failures — never write them)
 
@@ -61,4 +69,7 @@ task, the actual code, how to test it, what to check. DRY, YAGNI, TDD, frequent 
 
 ## Hand off
 
-Report the plan path and self-review result, then invoke `devarm-tasks`.
+Report the plan path, self-review result, and recommended next phase (`devarm-tasks`). By
+default, STOP and ask the user whether to run `devarm-tasks`. Invoke `devarm-tasks` only if the
+user explicitly requested end-to-end execution for this work or has just told you to continue. Do
+not treat silence as approval to continue.

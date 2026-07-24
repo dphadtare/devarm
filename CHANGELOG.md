@@ -3,6 +3,85 @@
 Every entry records a method change and the session/failure that motivated it. Maintained by
 `devarm-retro` — a lesson is only "done" when it's a gate in the method, not just a note.
 
+## 2026-07-23 — implementation-decision brainstorm + design anchoring (Tech Catalyst learnings)
+
+Tech Catalyst sessions surfaced two recurring failures. (1) Even with grounding, implementation
+decisions still arrived piecemeal *during* coding; question fatigue made the developer "go with
+the flow", which is acceptable for mechanical choices but let control-flow and design changes
+through unexamined — those needed a dedicated implementation brainstorm before coding, not
+one-at-a-time questions mid-task. (2) Long or resumed coding sessions anchored to
+current-session context and quietly skipped designs approved in earlier sessions — nothing
+forced the agent to reload the approved design doc before writing code.
+
+| Change | Rationale |
+|--------|-----------|
+| Added Pass 3 to `devarm-analyze`: an interactive implementation-decision brainstorm — control-flow walkthrough of the flagship + failure paths with the user, then ONE batch of all remaining decisions (assumed/undecided ledger rows, visible trade-offs, walkthrough forks), each with a recommendation | Pulls implementation-time decisions into one pre-coding sitting; the target is that `devarm-implement` asks near-zero questions |
+| Extended the analyze gate: no handoff to implement until Pass 3 flows are confirmed, the batch is answered, and no ledger row is left `assumed — awaiting confirmation` | Makes the brainstorm a hard gate, not advisory prose |
+| Added a design-anchor precondition to `devarm-implement`: before task 1 and on every session resume, locate the governing design doc + ledger and play back its binding constraints; the written design governs over session memory | Stops earlier-session designs being silently displaced by current-session context (the vibe-coding drift) |
+| Added a batching rule to `devarm-implement` decision ownership: mid-flow trade-offs proceed on the recommendation and are presented together at the next checkpoint for veto; only design-level surprises interrupt immediately; a foreseeable trade-off surfacing mid-task is logged as a Pass-3 miss for `devarm-retro` | Question fatigue is a drift vector — batching keeps the developer's attention for the decisions that change intent |
+| Paired updates: `AGENTS.md` pipeline table + analyze bullet + decision-ownership section, `README.md` pipeline table + owning-decisions section, `USER_GUIDE.md` flow table + quick-track note, structurizr analyze component + `AnalyzeGateFlow` | Skill files are runtime contracts; the routing surfaces must describe the same method |
+| Quick track gains a scoped analyze equivalent (touched seams re-verified + mini Pass 3 decision batch inside the quick-track doc); `devarm-implement` precondition 1 accepts it; the never-skip list now includes the pre-implementation decision batch | A findgap review of this change found the quick track ("go to implement") directly contradicting implement's hardened analyze precondition |
+| Pass 3 scoped re-run rule: after course corrections/drift/fix batches, re-walk only touched flows and decisions — confirmed ones stand; batch presentation lists `owner: user` design-level items first under their own heading | A full re-walk each re-gate would recreate the question fatigue Pass 3 removes; a batch "yes" must never bury an intent-level decision |
+| Fixed phase-number drift: `devarm-retro` frontmatter 9→10, `devarm-finish` 10→9 (both were swapped vs the pipeline tables), README "Retro (step 8)"→step 10 | Frontmatter is a runtime contract; retro was simultaneously numbered 8, 9, and 10 across surfaces |
+
+## 2026-07-16 — runtime prompt/skill/contract artifacts as first-class gated surfaces
+
+A review-driven session on the tech-catalyst repo fixed skills/prompts-accuracy findings, then a
+self-initiated review caught two of its own defects: (1) a new prompt directive gated on
+`len(repository_candidates) < 2` was correct on the single-repo primary path but contradicted the
+authoritative Shared-Cross-Repository-Plan block on the pinned expansion pass (candidates are
+narrowed to one there) — a self-contradicting prompt that would have shipped into the multi-repo
+flow; and (2) three separate wording drifts between skill/contract text and runtime truth (a
+"investigate next" vs "fix next" collision, an invalid `contract_mismatch` enum, an imprecise
+`0.85`/id-format guidance). A compaction summary also *claimed* lock tests that did not exist. Root
+cause: runtime prompt/skill/contract files describe runtime behavior but were gated more weakly
+than code modules.
+
+| Change | Rationale |
+|--------|-----------|
+| Expanded `devarm-ground` decision category #10 (Runtime contract surfaces) from pairing-only to three sub-checks: (a) pairing, (b) **value grounding** — every stated enum/threshold/constant cited to its source `file:line`, (c) **directive context sweep** — every runtime-gated prompt directive confirmed across every prompt-building context | Kills the wording-drift class (D3/D4/D5) and the context-contradiction class (B2) at design time |
+| Updated the `devarm-ground` Step-5 approval checklist to require value-grounding and the directive context sweep | Makes the new sub-checks a hard gate, not advisory prose |
+| Extended `devarm-tasks` decision→test traceability: a decision whose deliverable is prompt/skill/contract **wording** requires a **wording-lock test** asserting the exact string/value | The fix the session used ad hoc becomes standard; also makes "done" verifiable against the repo instead of a summary |
+| Added a `devarm-review` architecture-lens **runtime prompt/directive sweep** bullet | Second line of defense before merge for the context-contradiction class |
+| Extended the `devarm-review` QA-lens verification-evidence bullet to re-derive "done" from the repo, never from a session summary or implementer claim | Addresses the compaction-summary false-completion near-miss |
+
+## 2026-07-15 — explicit developer confirmation for git commits
+
+The implementation and retro skills still encouraged commits as an automatic phase/task outcome.
+That conflicts with developer ownership of repository history: no agent should create commits
+unless the developer explicitly asks for them.
+
+| Change | Rationale |
+|--------|-----------|
+| Added a global git commit policy to `AGENTS.md`: never run `git commit` without explicit developer confirmation in the current context | Task completion, phase completion, and end-to-end mode are not commit permission |
+| Reworked `devarm-implement` from automatic/frequent commits to commit-ready checkpoints with changed files, verification evidence, and suggested commit messages | Preserves auditability without taking control of history |
+| Reworked `devarm-plan` task language and `devarm-retro` output so they propose commit boundaries/summaries instead of creating commits | Plans and retros now align with the confirmation rule |
+| Updated README, USER_GUIDE, and findings ledger wording from required commits to commit-or-diff evidence | Verification remains evidence-based even when the developer keeps changes uncommitted |
+
+## 2026-07-14 — narrower devarm invocation policy
+
+The trigger language said "ANY creative work", which caused devarm to fire in chats where the
+user wanted a diagram, explanation, or lightweight documentation help. That made the method feel
+invasive instead of deliberate.
+
+| Change | Rationale |
+|--------|-----------|
+| Added an invocation policy to `AGENTS.md`: use devarm when explicitly requested or for consequential code/product work; do not use it for ordinary Q&A, repo exploration, summaries, simple docs, diagrams, or visualizations | The method should protect important implementation decisions, not wrap every helpful interaction |
+| Narrowed `devarm-brainstorm`'s description and hard gate from "ANY creative work" to consequential code/product changes plus explicit user request | Skill discovery now has a less trigger-happy contract |
+| Updated `README.md` and `USER_GUIDE.md` with when not to invoke devarm | Developers and agents both get the same operating expectation |
+
+## 2026-07-14 — default phase-by-phase execution
+
+The first user-guide pass made manual phase invocation possible, but the runtime skill contracts
+still said to invoke the next phase automatically (`spec → plan → tasks → analyze`). That made
+"manual gates" look like an exception instead of the default operating model.
+
+| Change | Rationale |
+|--------|-----------|
+| Added a global phase transition policy to `AGENTS.md`: halt after each phase gate, report the artifact/result, and ask what to run next unless the user explicitly requested end-to-end execution | The developer controls cadence; silence is not permission to continue into the next phase |
+| Updated `devarm-brainstorm`, `devarm-spec`, `devarm-plan`, `devarm-tasks`, and `devarm-analyze` handoffs to stop-and-ask by default | The behavior now lives in the runtime contracts, not just the user guide |
+| Documented explicit end-to-end mode in `README.md` and `USER_GUIDE.md`, while preserving stops for user approvals, design-level decisions, unresolved assumptions, failed verification, and failed analyze gates | End-to-end is opt-in and cannot bypass load-bearing gates |
+
 ## 2026-07-14 — back-and-forth protocol for brainstorming/design
 
 devarm channeled iteration (fork-following, per-section approval, ground bounce-backs, ledger
@@ -50,7 +129,7 @@ pipeline was already modeled on speckit's (specify→plan→tasks→analyze→im
 | Brainstorm coverage map: non-functional qualities + integration/external-dependency areas | speckit-clarify's taxonomy had these two categories the map lacked |
 
 Not adopted: hooks/extensions.yml machinery and check-prerequisites scripts (speckit plumbing —
-devarm skills chain directly); `## Clarifications` session log in the spec (the Decision
+devarm skills coordinate through phase gates directly); `## Clarifications` session log in the spec (the Decision
 Ledger is devarm's single home for decisions; a second Q→A log would split the record);
 speckit-taskstoissues (YAGNI for a solo workflow — revisit if working with a team);
 feature-numbering git scripts (reused via `.specify/` when present).
@@ -125,7 +204,7 @@ Side-by-side review confirmed devarm ⊇ devarm2 except two findings-ledger deta
 | Change | Rationale |
 |--------|-----------|
 | Findings ledger gains a **Source** column | Multiple review passes/sessions append to one file; rows must say where a claim came from without re-feeding transcripts. |
-| Strict status semantics: `fixed` requires verification output + commit; `deferred` requires a tracked task id | "Fixed" without seen verification and "deferred" without a task are how findings silently rot. |
+| Strict status semantics: `fixed` requires verification output + commit/diff evidence; `deferred` requires a tracked task id | "Fixed" without seen verification and "deferred" without a task are how findings silently rot. |
 
 devarm2 is superseded and can be discarded.
 
