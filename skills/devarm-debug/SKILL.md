@@ -48,6 +48,18 @@ fix on top. If you don't understand something, say so instead of pretending.
 2. One fix, addressing the root cause. No "while I'm here" refactoring.
 3. Verify: the test passes, the suite is green, the original symptom is gone.
 
+## Shared-helper bugs: fix the class, enumerate all call sites first
+
+When the root cause is a **shared helper's behavior** (a filter, sanitizer, scope/allowlist
+function, serializer), `grep` for **every** call site BEFORE the first fix and fix it at the source.
+Patching only the call site the symptom surfaced at leaves the same bug latent at the others — and
+if the feedback loop is a slow live E2E, each missed site costs another full cycle. This is
+fix-stacking spread across runs; the 3-strikes tell ("each fix reveals the same problem elsewhere")
+applies here too. *Session evidence (spec 028): `sanitize_publish_paths` dropped deletions at 4 call
+sites; fixed one-per-live-run (L1→L1b→L1c) = 3 expensive cycles, when one
+`git grep sanitize_publish_paths` at strike 1 would have shown all 4 and pointed the fix at the
+shared function itself.*
+
 ## The 3-strikes architecture rule
 
 If **3 fixes have failed**, STOP. This is no longer a bug — it's a wrong pattern/architecture

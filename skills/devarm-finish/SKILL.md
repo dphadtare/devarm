@@ -27,6 +27,14 @@ leaking into tests before blaming the branch — fix or document `conftest` isol
 Also confirm the findings ledger has no `open` blocking rows and the Decision Ledger has no
 `assumed — awaiting confirmation` rows.
 
+**Pre-PR / pre-push integrity (when the user asks for a PR):** before `git push` or
+`gh pr create`, confirm (1) `git status` shows **no untracked files imported by staged code**
+(new modules referenced by modified files must be staged), (2) ruff/lint was run on **new test
+files** with the same scope CI uses (local IDE-only checks miss SIM115-style rules), and (3) for
+git/worktree features, at least one real-git fixture test exists if the plan required it. *Session
+evidence (spec 027): core `pr_reuse.py` modules were untracked at PR time; CI failed on ruff
+SIM115 + checkout cleanup test after diagnostic added `rev-parse`.*
+
 ## Step 2 — Determine the base branch
 
 `git merge-base HEAD main || git merge-base HEAD master`, or ask ("this split from main —

@@ -54,6 +54,16 @@ CURRENT working tree:
   case itself. (This is the check that catches "the evidence rule rejects our headline use case".)
 - **Runtime contracts:** every contract change in the plan has its paired prompt/SKILL update
   task, and the current runtime files match what the plan assumes they say.
+- **Cross-section contradiction sweep (skill/prompt-only, required when ≥2 sections of the same
+  runtime artifact change):** Wording-lock tests prove a substring exists; they do **not** prove
+  sections agree. Enumerate every section touched AND every section those sections reference;
+  for each pair, trace at least one realistic population where both apply (empty list, anchorless
+  entry, test-file path, deferral/waiver path, sibling-deferred path). If a new rule could
+  contradict an existing one on that population, it is a **HIGH** finding unless the plan/tasks
+  include either (a) an explicit carve-out in the new text, or (b) a routing characterization
+  test that executes the ship-gate predicate before/after. *Session evidence (026 semantic
+  minimality): item 10 blocked all runs with zero expectations (F1); correctness floor
+  contradicted Phase 1e test-file severity (G1) — both passed all wording-lock tests.*
 
 ## Pass 3 — Implementation-decision brainstorm (interactive, with the user)
 
@@ -63,7 +73,13 @@ resolved), in this order:
 1. **Control-flow walkthrough.** Narrate the functional/control flow of the flagship scenario
    AND each major failure/edge path through the planned components, as short numbered flows the
    user can read and object to ("A receives X → validates via B → on failure does C…"). Pause
-   after each flow for confirmation. An objection is a reopened decision → handle via
+   after each flow for confirmation. **If the plan has a State-Transition Table (re-entrant /
+   multi-actor state machine), walk it cell by cell** — for every `(state × event)` trace to its
+   terminal state and assert the required cells are non-schedulable / preserving (no loop, no
+   downgrade, no unintended close/reset) with the right side-effects and owning module. A missing
+   or hand-waved cell is a HIGH finding, not a coding-time detail. *Why: this session's fix tail
+   was almost entirely unenumerated state-transition cells (F1/F3/F6/L1/R2→R3) that a narrative-only
+   walkthrough let through.* An objection is a reopened decision → handle via
    `devarm-brainstorm`'s back-and-forth protocol (supersede + ripple-check), not an inline patch.
 2. **Enumerate the foreseeable implementation decisions.** Collect into one list: (a) every
    ledger row still `assumed — awaiting confirmation` or `owner: user` and undecided; (b) every

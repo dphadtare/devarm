@@ -68,19 +68,31 @@ one-line rationale tied to the finding. Prefer procedural checklist steps with h
 soft prose. **Only recurring (≥2 occurrences) or one severe failure earns a method change** —
 resist adding a rule for every one-off.
 
+**Canonical home (`vhosts/devarm`):** apply all skill edits under `skills/devarm-*/SKILL.md` in the
+devarm repo (`~/vhosts/devarm` or your clone). `install.sh` symlinks those dirs into
+`~/.agents/skills`, `~/.claude/skills`, and `~/.codex/skills` — **do not copy skills into feature
+repos** (e.g. `tech-catalyst-v2/.cursor/skills/devarm-*`); Spec Kit and project pulls will diverge
+or overwrite. Editing the symlink target updates every tool instantly. See devarm `README.md`.
+
 ### Step 5 — Record and propose a commit
 
-- Append a dated entry to `CHANGELOG.md` (what changed, which session/failure motivated it). Each
-  retro should identify one logical commit boundary, but the skill must not create the commit by
-  default.
+- Append a dated entry to `CHANGELOG.md` at the **devarm repo root** (what changed, which
+  session/failure motivated it). Each retro should identify one logical commit boundary, but the
+  skill must not create the commit by default.
+- Changed files must live in the devarm repo (`skills/devarm-*`, `CHANGELOG.md`, templates,
+  `AGENTS.md` as needed). Never treat symlink destinations (`~/.claude/skills/`, feature-repo
+  `.cursor/skills/`) as the commit target — they are views of `vhosts/devarm`.
 - Present the proposed edits, changed files, verification evidence, and a suggested commit
-  message. Wait for explicit developer confirmation before running `git commit` (editing the
-  method is itself a design-level decision — the user owns it).
+  message. Wait for explicit developer confirmation before running `git commit` in **vhosts/devarm**
+  (editing the method is itself a design-level decision — the user owns it).
 
 ## Anti-patterns
 
 - Retro notes that end as a document instead of a diff to this repo — the lesson isn't learned
   until it's a gate. The diff may remain uncommitted until the developer confirms.
+- Copying devarm skills into a feature repo or editing only a symlink path without committing
+  **vhosts/devarm** — changes won't reach teammates or survive reinstall; always diff `skills/` in
+  the devarm repo.
 - Adding a new rule for every one-off — only recurring or severe failures earn a method change.
 - Growing skills past the point where they get read — prefer tightening an existing gate over
   adding a new one.

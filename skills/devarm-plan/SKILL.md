@@ -43,10 +43,35 @@ checkpoints. Actual commits require explicit developer confirmation.
    failure posture, **shared mutable context sync** (which objects must hold the same dict
    reference — e.g. `diagnostic_context.gathered_info` ↔ `rem_context.gathered_info`), and
    **integration-test patch target** (patch where the caller imports — e.g.
-   `backend.workflows.remediation_workflow.apply_*` — not only the defining module). If a seam
+   `backend.workflows.remediation_workflow.apply_*` — not only the defining module). **Git
+   layout seam (required when checkout/publish touches an existing remote branch):** cite
+   worktree clone mode + refspec from grounding; plan MUST include a **real-git mirror/worktree
+   fixture test** (not mock-only `_run_git`) before the merge gate — mock tests alone cannot
+   catch mirror `origin/*` absence or `mirror=true` fetch refusal. *Session evidence (spec 027):
+   74 mocked tests green; live Docker E2E blocked until mirror refspec was fixed.* **Change-set
+   pipeline seam (required when a feature introduces a new *change type* — deletion / rename /
+   mode-change — or a new source of worktree changes):** enumerate EVERY stage that derives or
+   filters the change set from production to publish (apply → merge/scope-select → sanitize →
+   discard-outside-allowlist → commit → publish/scope-assert) and confirm the new type survives each
+   stage; a deletion is not a file that `exists()` on disk, so any existence-based filter silently
+   drops it. *Session evidence (spec 028): a reconciliation `revert` (a deletion) was stripped at 4
+   `sanitize_publish_paths` sites + 2 discard sites; because each stage was found one at a time, it
+   took 3 full live-E2E cycles (L1→L1b→L1c) to converge.* If a seam
    genuinely cannot be specified yet, add an explicit **spike task**
    to resolve it BEFORE the implementation task that depends on it — never defer it into the
    impl task itself.
+5b. **State-transition table (required when the feature adds/changes a re-entrant or multi-actor
+   state machine** — re-mention, retry, mid-flight arrival, resume, reopen, cancel, or any flow
+   where the same entity is re-processed). A narrative walkthrough is not enough here and is
+   silently skippable; a **table** makes a missing cell obvious. Enumerate every
+   `(current_state × incoming_event)` cell and, for each, state: the **resulting state**, the
+   **side-effects** (posts, reactions, `ui_generation`/card invalidation, metric), and **which
+   module owns the write** (so cross-module ownership of the same field is explicit). Call out
+   every cell whose resulting state must be **non-schedulable / preserving** (must not loop, must
+   not downgrade, must not close/reset). *Why (this session): ~6 same-class bugs — F1 ASSESSING
+   loop, F3 dropped card, F6 two-mention downgrade, L1 unsupported closed an active investigation,
+   R2→R3 re-queue signal — were all unenumerated `(state,event)→wrong terminal state` cells spread
+   across the worker↔coordinator↔session_service seam.*
 6. **Decompose into bite-sized tasks.** Each step is ONE action (2-5 min): write the failing
    test → run it (expect fail) → minimal implementation → run test (expect pass) → report a
    commit-ready checkpoint. Show the ACTUAL code and the ACTUAL command + expected output in

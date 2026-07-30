@@ -3,6 +3,136 @@
 Every entry records a method change and the session/failure that motivated it. Maintained by
 `devarm-retro` — a lesson is only "done" when it's a gate in the method, not just a note.
 
+## 2026-07-31 — spec 028 reuse-branch reconciliation retro (inert feature behind green tests)
+
+Motivated by the reuse-branch reconciliation session: design→ground→spec→plan→tasks→implement all
+completed with **52 tasks and a green suite**, and `devarm-review` **approved** — yet the feature was
+**completely inert**. `challenge-findings` + live E2E exposed the truth in a long, expensive tail:
+`prior_change_reconciliation` was silently dropped crossing `DiagnosticPayload` (Pydantic
+`extra=ignore`) and was never rendered into the code_fix prompt; the reconciliation `revert` (a file
+**deletion**) was then stripped by `sanitize_publish_paths` at 4 call sites + 2 discard sites. The
+flagship integration test **mocked `run_action_phases`**, hiding every one of these. The deletion bug
+was point-patched one call site per live-E2E cycle (L1→L1b→L1c = 3 rebuild+run+log cycles).
+
+Four existing gates tightened (no new skills):
+
+- **devarm-ground** — Step 3 category 3 **Carrier-field variant**: for a new field consumed by a
+  later phase, trace every serialization hop (typed model → dict → typed model → prompt → scope
+  filter), name each model's Pydantic `extra` policy, and confirm the consumer renders it — a
+  dropped/unrendered carrier ships the feature inert though tests are green.
+- **devarm-plan** — Step 5 **Change-set pipeline seam**: a new *change type* (deletion / rename /
+  mode-change) must be traced through EVERY change-set filter (apply → merge → sanitize → discard →
+  commit → publish); an existence-based filter silently drops a deletion.
+- **devarm-review** — QA lens **Mock-boundary / inert-feature audit**: per behavioral SC, state
+  whether its test hits the real seam or mocks it; a mocked-seam SC is not covered — require one
+  unmocked/live test or mark completion provisional.
+- **devarm-debug** — **Shared-helper bugs**: when the root cause is a shared filter/sanitizer/
+  serializer, grep all call sites and fix at the source *before* the first fix — one-per-cycle
+  patching is fix-stacking across (expensive live) runs.
+
+**Not changed (deliberate):** the git-layout gates from the 027 retro **held** (diagnose-on-base,
+mirror fixtures, god-file budgets all survived to the end); the L2 `revert_file` MCP-tool-adherence
+gap is low-value and self-healing (the publish path now handles the deletion regardless of mechanism).
+
+## 2026-07-30 — spec 027 ticket PR reuse retro (mirror git + PR/CI tail)
+
+Motivated by the ticket PR reuse session: design→implement was sound on DB reuse (D1–D6), but
+**P0 mirror/worktree git layout bugs** escaped mocked tests until local Docker E2E; a long tail of
+findgap → challenge → fix cycles re-litigated god-file and applied-files severity; PR almost
+shipped with **untracked core modules**; CI failed on ruff SIM115 + checkout test after
+diagnostic added subprocess `rev-parse`.
+
+Five existing gates tightened (no new skills):
+
+- **devarm-ground** — Step 2 item **5 (Git/worktree layout)**: mandatory mirror/refspec/`origin/*`
+  check when reusing existing remote branches.
+- **devarm-plan** — Step 5 **Git layout seam**: real-git mirror/worktree fixture required in plan;
+  mock-only `_run_git` insufficient for merge gate.
+- **devarm-tasks** — decision→test: git reuse/checkout ledger rows require real-git fixture test.
+- **devarm-implement** — Verify: **subprocess patch sweep** when extending checkout/diagnostic flows.
+- **devarm-finish** — Pre-PR integrity: no untracked imported modules; ruff on new test files.
+
+**Not changed (deliberate):** findgap/challenge downgrade of speculative findings worked; applied-files
+review friction was polish, not merge-blocking after live append publish (DEV-321527 #8).
+
+**Retro durability note:** devarm lives in `vhosts/devarm` and is symlinked globally via
+`install.sh` — never vendor into feature repos.
+
+## 2026-07-29 — spec 026 review semantic-minimality retro (DEV-320248 postmortem)
+
+Two blocking defects escaped analyze, review, and all wording-lock tests: F1 (Phase 1c item 10
+blocked runs with zero `ticket_expectations`) and G1 (correctness floor contradicted Phase 1e
+test-file severity). Found only via runtime prompt/directive sweep (F1) and findgap with executed
+ship-gate predicates (G1). Planning baseline drift (382 vs 351 SKILL lines) when implement started
+on a stale branch.
+
+Four existing gates tightened (no new skills):
+
+- **devarm-analyze** — Pass 2: mandatory **cross-section contradiction sweep** when ≥2 sections of
+  the same runtime skill/prompt change; HIGH if no carve-out or routing guard on realistic
+  populations (empty list, test path, deferral path).
+- **devarm-tasks** — decision→test: **routing characterization test** required when a new rule can
+  flip an existing ship-gate boolean (wording-lock alone insufficient).
+- **devarm-implement** — Precondition 4: **base-branch drift check** before task 1 and after any
+  `git pull` / merge during the feature.
+- **devarm-review** — architecture lens: **cross-section pairing checklist** for skill/prompt diffs
+  (e.g. Finding Severity ↔ Phase 1e).
+
+**Not changed (deliberate):** findgap/challenge downgrade of speculative findings worked; PR-merge
+alignment was user process, not a method gap.
+
+**Retro durability note:** devarm lives in `vhosts/devarm` and is symlinked globally via
+`install.sh` — never vendor into feature repos.
+
+## 2026-07-25 — spec 025 slack-conversational-repair retro
+
+Motivated by the Slack conversational-repair session, whose long tail was live-testing + repeated
+`/findgap` → challenge → fix cycles on a **re-entrant state machine** (a Slack thread re-processed
+across re-mentions, mid-flight arrivals, no-change passes, reopen). The pure decision-log module
+was clean; ~6 same-class bugs lived in the worker↔coordinator↔session_service **state-transition
+seam** — F1 (ASSESSING loop), F3 (dropped card), F6 (two-mention state downgrade), L1 (unsupported
+re-mention closed an active investigation), and the R2→R3 re-queue signal flip. A second class was
+**LLM-output realism**: `changed` keyed on free-text `understanding` the model rarely reproduces so
+the no-change short-circuit almost never fires (L2 — the feature's core cost goal), and run-on
+`1) … 2) …` lists shipped unreadable to Slack until reported. A third pattern was **silent design
+deviation in the fix loops**: several `/findgap` → challenge → fix iterations *changed* agreed
+behavior (the conditional-reset realignment, the unsupported re-mention handling) rather than merely
+implementing it, and nothing in the fix loop forced a consult — the developer had to repeatedly ask
+"are we changing the design?"
+
+Three recurring patterns cleared the ≥2/severe bar. Six existing gates tightened (no new skills):
+
+- **devarm-plan** — new step **5b: State-Transition Table** required whenever the feature adds/
+  changes a re-entrant or multi-actor state machine (re-mention, retry, mid-flight, resume, reopen,
+  cancel). Enumerate every `(current_state × incoming_event)` → resulting state + side-effects +
+  owning module, flagging cells that must be non-schedulable/preserving. *Why:* the fix-tail bugs
+  were all unenumerated `(state,event)→wrong terminal state` cells; a narrative walkthrough is
+  silently skippable, a missing table cell is visible.
+
+- **devarm-analyze** — Pass 3 control-flow walkthrough now **walks that table cell by cell** to
+  terminal state (no loop / no downgrade / no unintended close-reset), treating a missing or
+  hand-waved cell as a HIGH finding. *Why:* analyze's narrative-only walkthrough (and, here, being
+  skipped entirely when the feature went design→implement) let the state-transition class through.
+
+- **devarm-tasks** — decision→test traceability extended: every non-schedulable/preserving cell of
+  a State-Transition Table gets an acceptance test asserting its **terminal state + side-effects**
+  and the forbidden outcomes as negatives. *Why:* L1/F6 broke "repair preserves an active
+  investigation" because no test pinned those transitions' terminal states.
+
+- **devarm-ground** — category #10 (runtime contract surfaces) gains sub-check **(d) LLM-output
+  realism**: a control signal/predicate derived from LLM free-text must be validated to actually
+  fire given non-verbatim output (or keyed on a stable field), and LLM text rendered to a surface
+  must specify its presentation/normalization contract. *Why:* L2 dead predicate + the Slack mrkdwn
+  formatting miss.
+
+- **devarm-debug + devarm-review** — a **design-deviation guard** at fix time: a fix (root-cause
+  fix or finding remediation) that would *change* an agreed design decision or a locked Decision
+  Ledger row — not merely implement it — must STOP and consult the user, superseding the ledger row
+  with a ripple-check, before it is applied. *Why:* `devarm-implement` already carried the drift
+  rule, but the debug/review fix loops — where this session's design changes actually happened —
+  only consulted design at debug's 3-strikes rule and review's reviewer-side ledger screen; neither
+  guarded the fix being applied, so the developer had to police design drift by hand.
+
 ## 2026-07-23 — implementation-decision brainstorm + design anchoring (Tech Catalyst learnings)
 
 Tech Catalyst sessions surfaced two recurring failures. (1) Even with grounding, implementation
@@ -23,6 +153,69 @@ forced the agent to reload the approved design doc before writing code.
 | Quick track gains a scoped analyze equivalent (touched seams re-verified + mini Pass 3 decision batch inside the quick-track doc); `devarm-implement` precondition 1 accepts it; the never-skip list now includes the pre-implementation decision batch | A findgap review of this change found the quick track ("go to implement") directly contradicting implement's hardened analyze precondition |
 | Pass 3 scoped re-run rule: after course corrections/drift/fix batches, re-walk only touched flows and decisions — confirmed ones stand; batch presentation lists `owner: user` design-level items first under their own heading | A full re-walk each re-gate would recreate the question fatigue Pass 3 removes; a batch "yes" must never bury an intent-level decision |
 | Fixed phase-number drift: `devarm-retro` frontmatter 9→10, `devarm-finish` 10→9 (both were swapped vs the pipeline tables), README "Retro (step 8)"→step 10 | Frontmatter is a runtime contract; retro was simultaneously numbered 8, 9, and 10 across surfaces |
+
+## 2026-07-23 — spec 022 repo-ownership-confirm retro
+
+Motivated by the spec 022 session (DEV-319678 postmortem → brainstorm → implement → findgap →
+challenge → fix → branch commit). Pure routing modules were stable; the long tail was **seam
+binding**, **render-path consumer gaps**, **local `.env` test pollution**, and **findgap
+overreach** before a challenge pass.
+
+Six existing gates tightened (no new skills):
+
+- **devarm-ground** — category #3 (consumer audit) gained a **render-path variant**: operator-
+  facing fields must name the render function and confirm copy is shown, not only that a dict
+  exists on `final_output`. *Why:* `partial_findings` was populated but Jira/Slack sections
+  omitted key fields until a follow-up fix; dict-level tests passed SC-002 but not SC-005 message
+  structure.
+
+- **devarm-plan** — seam contract now requires **shared mutable context sync** (which objects
+  share the same `gathered_info` reference) and **integration-test patch target** (patch where
+  the workflow imports, not only the defining module). *Why:* spec 022 bugs in confirm binding
+  alias drift and integration mocks patching the wrong import path.
+
+- **devarm-tasks** — decision→test traceability now requires **rendered message assertions** when
+  the deliverable is operator-visible escalation/notification copy. *Why:* complements the
+  render-path audit with an enforceable acceptance test.
+
+- **devarm-implement** — precondition: **feature branch before task 1** (do not accumulate on
+  `main`). *Why:* entire 022 feature was uncommitted on `main` until finish.
+
+- **devarm-finish** — Step 1 adds **env bleed sanity check** and explicit reporting when optional
+  deps exclude part of the suite. *Why:* finish blocked on unrelated `PR_CREATION_DRY_RUN` /
+  Guru `.env` values and optional `tree_sitter` dep.
+
+- **devarm-review** — **Challenge before fix-all** for HIGH/Should-fix batches (especially after
+  `/findgap`). *Why:* challenge pass downgraded several findgap HIGH items to defer/by-design,
+  preventing a wasted fix cycle.
+
+## 2026-07-17 — spec 017 diagnosis-gap-repair retro
+
+Motivated by the spec 017 (diagnosis-gap-repair) development session, whose long tail was
+repeated `/findgap` → fix cycles. The pure modules (`review_route_back`, policy, dispatch,
+gate) were largely correct first time; almost every correctness bug lived in the **integration
+seams and downstream consumers** — especially the `ActionResult → RemediationOutput → worker →
+notification` data contract for US6 partial-publish.
+
+Three existing gates tightened (no new skills added):
+
+- **devarm-implement** — Verify step + verification table now require mirroring the CI gate
+  commands (e.g. `mypy .`, `ruff check .`); IDE/editor diagnostics (ReadLints) are explicitly
+  NOT a substitute. *Why:* 5 `mypy` errors survived the implement loop (which ran pytest + ruff
+  + IDE lints but never `mypy .`) and were only caught by a separate review — a CI gate existed
+  but the loop didn't mirror it.
+
+- **devarm-ground** — decision category #3 (persistence + consumer audit) gained a
+  "new-producer variant": the audit also fires when new code starts *producing* an existing
+  cross-layer/persisted field, and must confirm the new producer honors invariants existing
+  consumers assume. *Why:* US6's route-back began writing `multi_repo_partial`/`prs`, silently
+  breaking invariants the worker (dropped URL-less PR rows) and `_notify_success` (claimed full
+  success) already assumed.
+
+- **devarm-tasks** — decision→test traceability now requires a **negative** acceptance test for
+  any safety invariant ("never/always"), not just a happy-path test. *Why:* design §10.4 ("never
+  `success:true` while no PR published") had a task (T040) that asserted only the publish-happy
+  path, so the first US6 build shipped a false "partial success" with no PR.
 
 ## 2026-07-16 — runtime prompt/skill/contract artifacts as first-class gated surfaces
 

@@ -27,6 +27,13 @@ metadata:
    toward NEVER overrides what the approved doc says. If landed code or new instructions
    contradict the doc, that is the drift rule / course-correction protocol below — not a silent
    re-design from session context.
+4. **Base-branch drift check before task 1 (and after any `git pull` / merge during the feature).**
+   Re-verify plan anchors against the **current checkout**: file baselines (`wc -l`, grep anchor
+   strings), cited `file:line` seams, and branch identity vs where planning happened. If the
+   baseline moved, stop, record a PF-N note in tasks, and re-verify anchors by content — not
+   stale line numbers. *Session evidence: planning on a branch 2 commits behind `main` changed
+   SKILL.md from 382 to 351 lines; every edit anchor was still correct but the line budget was
+   wrong.*
 
 ## Execution loop (per task)
 
@@ -44,6 +51,12 @@ written before its test, RED must FAIL not error, test-quality rules, anti-patte
    the IDE:** run the SAME gate commands CI runs (discover them from the CI config — e.g.
    `mypy .`, `ruff check .`), because editor/IDE diagnostics (ReadLints) do NOT invoke the CI
    type-checker. Code that passes tests + IDE lints but fails `mypy .` still breaks the build.
+   **Subprocess patch sweep:** when adding a new git/subprocess call to an existing flow
+   (checkout, publish, diagnostic), grep tests that exercise that flow and confirm mocks patch
+   the **import site the caller uses** (e.g. function-local `from repo_publish import _run_git`
+   → patch `backend.services.git.repo_publish._run_git`, not the caller module attribute).
+   *Session evidence (spec 027): diagnostic head-commit `rev-parse` broke CI because checkout
+   cleanup tests did not mock the new subprocess call.*
 5. **Checkpoint** — report the changed files, verification evidence, any trade-off ledger rows
    logged since the last checkpoint (batched for veto, per the batching rule below), and a
    suggested commit message. Never run `git commit` unless the developer explicitly asks for

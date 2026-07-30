@@ -32,6 +32,13 @@ metadata:
   the negative case ship. In a past session "never mark success while no PR is published" had a
   task, but it only checked the publish-happy path, so the first build shipped a false "partial
   success" with no PR; the missing test was the negative guard "no real PR ⇒ not success".
+  When the deliverable is a **state machine** (a plan State-Transition Table), every cell required
+  to be non-schedulable / preserving gets an acceptance test asserting its **terminal state and
+  side-effects** — and the forbidden outcomes as negatives (does NOT loop / does NOT downgrade /
+  does NOT close-or-reset an active entity). A per-transition test is the guard; a happy-path-only
+  suite lets a wrong terminal state ship. *Why (this session): "repair preserves an active
+  investigation" was broken by the unsupported-close path (L1) and a two-mention downgrade (F6)
+  because no test pinned those transitions' terminal states.*
   When a decision's deliverable is prompt/skill/contract **wording** (an enum value, a
   threshold, an instruction string), the acceptance test is a **wording-lock test** that asserts
   the exact string/value in the artifact. Without it the wording silently drifts — and in a past
@@ -42,6 +49,19 @@ metadata:
   `build_diagnosis_escalation_user_message` output), not only that a dict exists on
   `final_output` — spec 022 SC-005 shipped dict-level coverage while Jira copy stayed thin until
   a follow-up fix.
+  When a new skill/prompt rule can change a **ship-gate boolean** (an existing Python predicate
+  on phase output — waiver, override, `blocks_pr`, retry routing), add a **routing
+  characterization test** that executes the predicate on a constructed payload and asserts the
+  measured before/after, not only a wording-lock on the instruction text. *Session evidence:
+  changing finding severity from `warning` to `error` flipped
+  `review_allows_test_file_deferred_review` with no test until findgap — wording locks were
+  green throughout.*
+  When a locked decision implements **git checkout/publish on an existing remote branch**
+  (append reuse, rebase onto base, force-with-lease), the acceptance test MUST include a
+  **real-git mirror + worktree fixture** exercising fetch → checkout → at least one
+  post-checkout fetch — mock-only `_run_git` tests are necessary but not sufficient for merge.
+  *Session evidence (spec 027): D7 git reuse mode; mocked suite passed; live E2E found P0 mirror
+  layout bugs.*
 
 ## Format
 

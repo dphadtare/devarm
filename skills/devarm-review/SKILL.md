@@ -38,10 +38,24 @@ metadata:
   prompt — primary vs expansion/variant. A directive true on one path can contradict an
   authoritative block in the same prompt on another (a real bug in a past session: a "single
   linked repository" directive fired on a pinned expansion pass that carried a multi-repo plan).
+- **Cross-section pairing (skill/prompt-only):** when the diff touches multiple sections of the
+  same runtime artifact, list every **section pair** checked (e.g. Finding Severity ↔ Phase 1e,
+  new Phase 1c item ↔ existing Phase 1b item) and record pass/fail in the findings ledger or
+  polish task — a read scoped to "the sections we added" misses contradictions in sections we
+  only referenced. *Session evidence: T026 read Hard Rules + Phase 1c 7-10 only; G1 (floor vs
+  Phase 1e) escaped until findgap.*
 
 ### QA lens
 - **Test coverage of behavior** (not just lines): does each spec requirement have a test? Are
   failure modes, edge cases, empty/single/disabled paths, and idempotency/replay tested?
+- **Mock-boundary / inert-feature audit:** for each behavioral success criterion, state whether its
+  covering test exercises the **real seam** or mocks it out. An SC whose only test mocks the exact
+  seam it asserts is **not covered** — green there is false confidence. Require at least one test per
+  behavioral SC that runs the unmocked path (real-git fixture, in-process wiring, or a live smoke),
+  or mark completion **provisional pending a live run**. *Session evidence: spec 028's flagship test
+  mocked `run_action_phases`, so a completely unwired reconciliation (dropped field, unrendered
+  prompt, scope-stripped deletion) passed green and was approved — only live E2E exposed it; spec 027
+  repeated the shape (74 mocked `_run_git` tests green, live E2E failed).*
 - **Determinism:** are ordering/tiebreak rules actually enforced and tested?
 - **Verification evidence:** were tests/lints/types actually run green? Ask for the output if not
   shown. Re-derive "done" from the repo itself (grep for the named test / read the file), never
@@ -98,6 +112,12 @@ stops reviews from re-litigating settled decisions (a real source of churn in a 
   context, or contradicts a ledger decision — and if your pushback turns out wrong, state the
   correction factually ("verified — you're correct because X; fixing") and move on. No
   apologies, no defending.
+- **Design-deviation guard (fires at fix time, not review time).** Before applying a finding whose
+  fix would *change* an agreed design decision or a locked Decision Ledger row — not merely
+  implement it — STOP and consult the user first; that remediation is itself a design-level
+  decision. Supersede the ledger row explicitly (with a ripple-check of its consumers); never
+  smuggle a redesign into a "fix". This is distinct from the reviewer-side "check findings against
+  the ledger" rule above — that screens findings; this screens the *fixes* you apply to them.
 
 ## End every review turn with an explicit state split
 
