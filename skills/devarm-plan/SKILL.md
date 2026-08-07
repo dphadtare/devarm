@@ -56,7 +56,23 @@ checkpoints. Actual commits require explicit developer confirmation.
    stage; a deletion is not a file that `exists()` on disk, so any existence-based filter silently
    drops it. *Session evidence (spec 028): a reconciliation `revert` (a deletion) was stripped at 4
    `sanitize_publish_paths` sites + 2 discard sites; because each stage was found one at a time, it
-   took 3 full live-E2E cycles (L1→L1b→L1c) to converge.* **OpenCode skill contract seam
+   took 3 full live-E2E cycles (L1→L1b→L1c) to converge.* **Fix-loop retry-counter
+   seam (required when a feature changes behavior on "repair retry" inside an existing
+   re-entrant loop — fix loop, coverage loop, context-window retry, infra prep retry):**
+   enumerate **every counter** that can mean "this is a repair retry" (`retry_count`,
+   `code_fix_attempts`, `coverage_retry_count`, etc.) and **every `continue` / early exit**
+   between "code fix succeeded" and "loop iteration ends". For each path, state which counter
+   increments **before** the next iteration and which gate (merge seed, prompt, discard
+   allowlist) reads which counter. If merge and prompt use different counters, that is a
+   **HIGH** plan defect — name one canonical `repair_retry` signal or document why they
+   diverge. Add at least one **routing characterization test** per non-obvious loop
+   (`coverage continue`, `action_prep sync continue`, context-window retry) that asserts
+   the widen/narrow decision. *Session evidence (spec 033 / DEV-323494): D1 locked
+   `retry_count > 0`; infra `retry_count` bump on `action_prep` widened merge before first
+   code fix; pre-validation `coverage_retry_count continue` skipped `code_fix_attempts +=
+   1`, so the second code-fix run behaved like a first attempt and dropped multi-file
+   patches; prompt gated on `retry_count` while merge used `code_fix_attempts` — coverage
+   feedback never reached the agent.* **OpenCode skill contract seam
    (required when adding `backend/opencode/skills/<name>/`):** specify producing vs
    reference-only (overlay loaded by another phase), require the standard untrusted-input
    guard, name the repo skill-content test module in the plan, and add a polish-task to run CI's

@@ -62,6 +62,13 @@ metadata:
   post-checkout fetch — mock-only `_run_git` tests are necessary but not sufficient for merge.
   *Session evidence (spec 027): D7 git reuse mode; mocked suite passed; live E2E found P0 mirror
   layout bugs.*
+  When a new helper is **only** called from a god-file orchestrator seam, the acceptance task
+  MUST include a **behavioral wiring test** that executes the orchestrator method (mocked
+  git/phase deps) and asserts the helper's output reaches the downstream callee (e.g. first
+  arg to `merge_applied_files`) — a **source grep / substring inspection test alone is not
+  sufficient** and may stay green while the feature is unwired. *Session evidence (spec 033):
+  T010 source inspection passed; challenge found split-brain (helpers + tests without
+  `unified.py` wiring); DEV-323494 fix did not ship until behavioral test added.*
   When tasks add a **new OpenCode skill directory**, include an acceptance task that the skill
   satisfies the repo skill-content contract: standard `## Untrusted Input` guard; classify as
   **producing** (requires ` ```json ` delivery markers) vs **reference-only** (overlay loaded

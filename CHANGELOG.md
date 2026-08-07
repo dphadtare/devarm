@@ -3,6 +3,35 @@
 Every entry records a method change and the session/failure that motivated it. Maintained by
 `devarm-retro` — a lesson is only "done" when it's a gate in the method, not just a note.
 
+## 2026-08-08 — spec 033 fix-loop worktree merge seed retro (DEV-323494 / PR #124)
+
+Motivated by DEV-323494 postmortem → brainstorm → ground → spec/plan/tasks/analyze →
+implement → findgap → challenge → split-brain re-wire → findgap → challenge →
+`code_fix_attempts` / coverage-loop fix → push (commits `0667d3d`, `b4d6af5` on
+`032-nr-link-intake`). Core ledger (D4′ worktree seed, D5 full re-declare prompt, D6 stray
+dirt accepted) held. Expensive tail: (1) helpers + tests landed without `unified.py`
+wiring — findgap said green, challenge found split-brain; (2) D1 used `retry_count` but
+infra `action_prep` and pre-validation **coverage `continue`** paths skipped the repair
+counter increment — same DEV-323494 failure mode on second code-fix; (3) merge gated on
+`code_fix_attempts`, prompts on `retry_count` — coverage feedback never shown; (4) source
+grep wiring test insufficient until behavioral `run_action_phases` test added; (5) user
+"fix required / ignore rest" + challenge-findings before second fix batch worked well.
+
+Four existing gates tightened (no new skills):
+
+- **devarm-plan** — **Fix-loop retry-counter seam**: enumerate all loop counters + every
+  `continue` between success and iteration end; one repair-retry signal for merge + prompt
+  + discard; routing characterization test per non-obvious loop path.
+- **devarm-analyze** — Pass 2 **Continue-path side-effect audit** for re-entrant loops.
+- **devarm-tasks** — God-file-only helper wiring requires behavioral orchestrator test;
+  source grep alone insufficient.
+- **devarm-implement** — **Wiring completeness sweep** before task-done (grep call sites,
+  run wiring test, detect split-brain).
+
+**Not changed:** native findgap/challenge already covered by `devarm-review` challenge-before-fix-all
+and required/defer state split; doc drift (`retry_count` vs `code_fix_attempts`) deferred as
+hygiene; D6 / god-file growth accepted per ledger.
+
 ## 2026-08-07 — spec 032 human NR link intake retro (PR #124) — native method pass
 
 Motivated by the DEV-323859 postmortem → brainstorm → ground → spec/plan/tasks/analyze →

@@ -77,6 +77,16 @@ CURRENT working tree:
   patches a module attribute that does not exist / is never read (silent no-op). *Session
   evidence (026 hardening): `patch("…github_app_auth.settings")` was a no-op against a local
   `from backend.config import settings`.*
+- **Continue-path side-effect audit (required when the plan touches a re-entrant loop with
+  retry-specific behavior):** for each cited `continue` / early `return` inside the loop body,
+  list side-effects that MUST run before the next iteration (counter increments, feedback
+  assignment, `last_applied_*` updates). Flag any path where the loop restarts code-fix (or
+  equivalent) without the increment that the merge/prompt gate expects — **HIGH** unless
+  explicitly deferred in the Decision Ledger with an enforcing negative test. Re-check that
+  merge seed, prompt gating, and discard allowlist all read the **same** repair-retry signal
+  (or document the intentional split). *Session evidence (spec 033): analyze Pass 3 walked
+  validation/review retry but not pre-validation coverage `continue`; findgap caught it
+  post-ship.*
 
 ## Pass 3 — Implementation-decision brainstorm (interactive, with the user)
 

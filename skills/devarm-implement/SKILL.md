@@ -75,6 +75,13 @@ written before its test, RED must FAIL not error, test-quality rules, anti-patte
    require a **single** head whose `down_revision` is the previous tip — never reuse a revision
    id already on `main`. *Session evidence (spec 030): lease migration reused `0026` already
    taken by soft-delete → dual heads / broken migrate graph.*
+   **Wiring completeness sweep:** when a task adds a new helper in a pure module and wires it
+   from a god-file, before claiming the task done: (1) `grep` the helper name under
+   `backend/` and confirm ≥1 **production** call site in the cited orchestrator (not tests
+   only); (2) run the behavioral wiring test from tasks (not only helper unit tests); (3) if
+   tests expect orchestrator changes but the god-file is absent from `git diff`, stop —
+   split-brain. *Session evidence (spec 033): `repo_changes.py` helpers landed; tests expected
+   `unified.py` wiring; orchestrator unchanged → 3 reds and feature inert until re-wired.*
 5. **Checkpoint** — report the changed files, verification evidence, any trade-off ledger rows
    logged since the last checkpoint (batched for veto, per the batching rule below), and a
    suggested commit message. Never run `git commit` unless the developer explicitly asks for
