@@ -3,6 +3,124 @@
 Every entry records a method change and the session/failure that motivated it. Maintained by
 `devarm-retro` — a lesson is only "done" when it's a gate in the method, not just a note.
 
+## 2026-08-07 — spec 032 human NR link intake retro (PR #124) — native method pass
+
+Motivated by the DEV-323859 postmortem → brainstorm → ground → spec/plan/tasks/analyze →
+implement → findgap/review tail → devarm-finish → PR #124 session, plus explicit user direction
+to **adopt external patterns natively in devarm** (Superpowers skill-check, speckit-clarify,
+preserve-existing-tool grounding) instead of depending on those tools.
+
+Core Decision Ledger held through ship. Expensive patterns: (1) findgap on ~10 design Q&A turns;
+(2) user "confirm ground reality" on existing NR MCP tools → **PRESERVE** inventory; (3) session
+inventory + superpowers adoption intent; (4) post-implement clarify on `one.newrelic.com`
+(prerequisites pointed at spec 019 not 032); (5) R3 optional-input branch seam; (6) partial git
+staging at finish; (7) 35 false-red tests from empty `/tmp/repo`; (8) SC-001 mock-heavy (existing
+review gate).
+
+**One new skill + gate tightenings:**
+
+- **devarm-clarify** (NEW, phase 4) — native ≤5-question ambiguity gate + code-grounded reconcile;
+  optional Spec Kit delegate after feature-dir sanity.
+- **AGENTS.md** — clarify in pipeline; invocation preamble; native-over-external policy.
+- **devarm-brainstorm** — Preserve trigger; method inventory; findgap → native review.
+- **devarm-ground** — `preserve` verb; parallel-capability (cat 1); optional-input branch (cat 3).
+- **devarm-spec** — hand off to clarify before plan.
+- **devarm-review** — code-grounded spec reconcile.
+- **devarm-finish** — fixture-path bleed + staging parity.
+- **devarm-retro** — method adoption bullet.
+- Phases renumbered: plan=5 … retro=11.
+
+**Not changed:** domain skills (tc-postmortem) stay project-specific; SC-001 mock audit unchanged.
+
+## 2026-08-05 — spec 026 GitHub App auth hardening retro (PR #86)
+
+Motivated by the GitHub App auth hardening session on PR #86: findgap → challenge → alignment
+notes → one-by-one disposition lock → ground (revised R5) → spec → plan → tasks → analyze →
+implement (TDD) → review approve → findgap/challenge tail → push `00ee2e70`. Core ledger (R1
+path refresh, R5 share-when-`config is None`, R7 must-have tests, R3/R2 deferred) held; code
+shipped clean. Expensive or near-miss patterns: (1) plan’s test patched a non-existent
+`github_app_auth.settings` while production locally imports `backend.config.settings` — analyze
+caught as HIGH A5 before implement; (2) post-implement findgap re-ranked ledger-deferred
+residuals (Git 401 remint, R2 URL-inject, Helm `b64dec`) as High merge urgency until challenge
+restored the defer split (same class as 030); (3) seven “recommended” turns locking dispositions
+one-by-one before “Accept all”; (4) user needed a separate explainer that R3/FG-03 blocks
+**cutover**, not code merge.
+
+Four existing gates tightened (no new skills):
+
+- **devarm-plan** — Step 5 **Settings/config patch seam**: patch the binding site
+  (`backend.config.settings.<attr>` when that is the import); never invent
+  `feature_module.settings` for a local import.
+- **devarm-analyze** — Pass 2: verify planned settings patch strings against real imports
+  (HIGH if no-op); Pass 3: `owner: user` deploy-gates get an explicit “blocks cutover, not
+  merge” sentence.
+- **devarm-review** — ledger status language (`deferred for this PR` / deploy-gate /
+  out-of-scope / follow-up) cannot become **Required for merge** after findgap re-labeling.
+- **devarm-brainstorm** — **Disposition batch (≥3 Recommended remedies)**: present full batch +
+  accept-all; sequential deep-dives optional after, not instead of the batch.
+
+**Not changed (deliberate):** grounding’s R5 revision (share only when `config is None`) worked
+and needed no new gate; TDD red→green and god-file net≤0 held; R3 remaining as ops evidence
+(secrets owner) is correct process, not a method hole; parallel findgap transcript evaluation
+was covered by existing challenge-before-fix-all.
+
+## 2026-08-05 — spec 030 multi-pod worker concurrency retro (PR #108)
+
+Motivated by the multi-pod concurrency session: brainstorm→ground→spec→plan→tasks→analyze→
+implement→review→long findgap/challenge/fix tail→finish→PR #108. Core ledger (enqueue + lease +
+Redis leader) held; the expensive tail was (1) soft-delete API/tests stripped from shared
+`routes.py` / `ticket_job.py` while #107 landed on the same surfaces, (2) Alembic dual-head when
+lease migration reused revision `0026`, (3) cutover orphans when nullable lease columns replaced
+heartbeat stale without a NULL-row path, (4) D2 `waiting_signal` reuse shipping a stuck-requeue
+UX until mid-flight supersede, (5) findgap re-ranking by-design residuals as top-5 until
+challenge + "fix required only", (6) user had to *ask* for architecture/as-built diagrams
+and for elaboration mid-Q loop ("I'm not getting…", "help me decide/understand").
+
+Seven existing gates tightened (no new skills):
+
+- **devarm-implement** — precondition **Shared-surface collateral check** on god-file edits vs
+  `main`; Verify **Alembic graph** single-head / no reused revision ids; post-implement
+  **as-built diagram** before offering review when topology changed.
+- **devarm-plan** — Step 5 **Migration graph seam**: parent = current `alembic heads`; unique
+  revision id; polish re-check.
+- **devarm-ground** — category 7 **Cutover-null variant** for nullable ownership/lease columns.
+- **devarm-analyze** — Pass 3 **Shared policy matrix** (status × channel) when centralizing
+  enqueue/claim.
+- **devarm-review** — end-of-turn split adds **Required for merge** vs **Defer / optional**;
+  bare "fix the findings" must not expand Defer.
+- **devarm-brainstorm** — **Architecture diagram gate** before concluding multi-component
+  sections / approval; **Confusion / decide stop** before the next Recommended question;
+  diagrams persisted into the design doc.
+
+**Not changed (deliberate):** challenge-findings correctly deferred zombie task-cancel and
+D25 renew-loop (spec out-of-scope / by-design); finish CI-command gate from 029 held (caught
+ruff I001 on new tests); claim-before-`create_task` and Redis fail-closed needed no new gates.
+
+## 2026-08-05 — spec 029 fix verification policy retro (DEV-319678 → skills-only policy)
+
+Motivated by the DEV-319678 postmortem → design → spec/plan/tasks/analyze/implement/review →
+findgap/challenge → PR #106 CI tail: targeted feature tests were green but CI failed on repo-wide
+`test_skill_content_requirements` (new skill missing untrusted guard + reference-only classification)
+and on main-branch triage dedup tests (identical error messages collapsed by issue signature).
+Cross-section Phase 1 vs Phase 1b contradiction escaped analyze wording-lock until findgap; user
+skipped `devarm-finish` and opened PR directly.
+
+Five existing gates tightened (no new skills):
+
+- **devarm-plan** — Step 5 **OpenCode skill contract seam**: producing vs reference-only,
+  untrusted-input guard, skill-content test module named, full backend unit CI command in polish.
+- **devarm-tasks** — decision→test: new OpenCode skill dirs require skill-content contract task
+  (untrusted guard + producing/reference-only allowlist).
+- **devarm-analyze** — Pass 2: **workflow-order pairs** in cross-section sweep; **New OpenCode
+  skill contract** checklist when plan adds a skill directory.
+- **devarm-implement** — Verify: run skill-content tests or full `pytest tests/unit -q` when
+  touching `backend/opencode/skills/**` — targeted subset insufficient.
+- **devarm-finish** — Pre-PR integrity item (4): same backend unit command CI uses, not subset only.
+
+**Not changed (deliberate):** challenge-findings downgrade of G2/N1 (accepted D7 Python residual)
+worked; triage test fix was main-branch dedup alignment, not a new devarm gate; context-overburden
+question answered by thin skill design (D8) — no new context budget rule.
+
 ## 2026-07-31 — spec 028 reuse-branch reconciliation retro (inert feature behind green tests)
 
 Motivated by the reuse-branch reconciliation session: design→ground→spec→plan→tasks→implement all

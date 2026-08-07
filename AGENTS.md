@@ -19,18 +19,29 @@ approved, which is what keeps decisions out of implementation.
 | 1 | Brainstorm | `devarm-brainstorm` | `design.md` (draft) | Design presented, sections approved section-by-section |
 | 2 | **Ground** | `devarm-ground` | `Detailed Design` + `Decision Ledger` appended to `design.md` | Every reuse claim verified with `file:line`; no ungrounded assumption |
 | 3 | Specify | `devarm-spec` | `spec.md` (WHAT/WHY, testable) | Spec quality checklist passes |
-| 4 | Plan | `devarm-plan` | `plan.md` + file-structure map | Every requirement maps to a task; no placeholders |
-| 5 | Tasks | `devarm-tasks` | `tasks.md` (tests-first, ordered) | Each behavior has a failing test task before impl |
-| 6 | **Analyze** | `devarm-analyze` | severity-ranked findings report + batch-decided implementation decisions | Artifacts consistent AND re-verified vs current code; flagship story traced end-to-end; remaining implementation decisions batch-decided with the user |
-| 7 | Implement | `devarm-implement` | code + green tests | Verification run and confirmed before "done" |
-| 8 | Review | `devarm-review` | review notes + findings ledger | Architecture + QA lens against principles + ledger |
-| 9 | Finish | `devarm-finish` | merged branch / PR / kept / discarded | Fresh full-suite green; four structured options; typed confirm to discard |
-| 10 | Retro | `devarm-retro` | proposed edits + suggested commit summary | Session analyzed; method improved |
+| 4 | **Clarify** | `devarm-clarify` | `spec.md` Clarifications + resolved ambiguities | Up to 5 material questions answered (or explicit skip with logged risk) |
+| 5 | Plan | `devarm-plan` | `plan.md` + file-structure map | Every requirement maps to a task; no placeholders |
+| 6 | Tasks | `devarm-tasks` | `tasks.md` (tests-first, ordered) | Each behavior has a failing test task before impl |
+| 7 | **Analyze** | `devarm-analyze` | severity-ranked findings report + batch-decided implementation decisions | Artifacts consistent AND re-verified vs current code; flagship story traced end-to-end; remaining implementation decisions batch-decided with the user |
+| 8 | Implement | `devarm-implement` | code + green tests | Verification run and confirmed before "done" |
+| 9 | Review | `devarm-review` | review notes + findings ledger | Architecture + QA lens against principles + ledger |
+| 10 | Finish | `devarm-finish` | merged branch / PR / kept / discarded | Fresh full-suite green; four structured options; typed confirm to discard |
+| 11 | Retro | `devarm-retro` | proposed edits + suggested commit summary | Session analyzed; method improved |
 | — | Debug (on-demand) | `devarm-debug` | root cause + failing test + one verified fix | No fix without root cause; 3 failed fixes → question the architecture |
 | — | TDD (core discipline) | `devarm-tdd` | behavior locked by a test seen to fail first | No production code without a failing test; code-before-test gets deleted |
 
 ## When to invoke each skill
 
+- **Invocation preamble (every `devarm-*` phase):** before acting in any devarm skill, (1) read
+  that skill fully, (2) scan the target repo's `.cursor/rules/` and `.specify/` for constraints
+  relevant to this phase, (3) if the user cited an existing tool/service/wiring ("confirm ground
+  reality", "don't change X"), open it with `file:line` evidence before proposing new behavior.
+  This replaces external "check skills before acting" hooks — devarm owns the discipline natively.
+- **Native over external:** devarm embeds behaviors from Spec Kit clarify, findgap-style review,
+  and skill-check-before-act **inside** its own skills. External commands (`/speckit-clarify`,
+  `/findgap`, Superpowers) are optional adapters, not dependencies. Domain skills (e.g.
+  ticket postmortems) stay project-specific and are listed in the session method inventory when
+  used — they are not part of core devarm.
 - **Invocation policy:** devarm is not the default for every chat. Use it when the user asks for
   devarm / a specific `devarm-*` phase, or when the requested work is a consequential code or
   product change that needs decisions locked before implementation: new feature, behavior
@@ -62,9 +73,12 @@ approved, which is what keeps decisions out of implementation.
   walkthrough (flagship + failure paths) that batch-decides every foreseeable implementation
   decision with the user, so `devarm-implement` asks near-zero questions and only genuine
   design-level surprises may interrupt coding.
-- `devarm-spec` → `devarm-plan` → `devarm-tasks` turn the grounded design into executable work.
-  If a `.specify/` (spec-kit) directory exists in the target repo, these skills reuse its
-  templates and `constitution.md`; otherwise they fall back to `devarm/templates/`.
+- `devarm-spec` → **`devarm-clarify`** → `devarm-plan` → `devarm-tasks` turn the grounded design
+  into executable work. **`devarm-clarify`** is the native ambiguity gate (≤5 questions, spec
+  Clarifications section); skip only with logged risk. If a `.specify/` (spec-kit) directory
+  exists, `devarm-clarify` may delegate to `/speckit-clarify` after **feature-dir sanity** —
+  otherwise it runs natively. `devarm-spec` / `devarm-plan` reuse spec-kit templates when
+  `.specify/` exists; otherwise they fall back to `devarm/templates/`.
 - `devarm-implement` executes tasks one at a time (red → green → refactor → verify → report a
   commit-ready checkpoint; commit only with explicit developer confirmation).
 - `devarm-review` runs before merge, or whenever a major step completes.

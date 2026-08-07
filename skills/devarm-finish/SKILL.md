@@ -2,7 +2,7 @@
 name: "devarm-finish"
 description: "Use when implementation is complete, review findings are closed, and the work needs to be integrated. Verifies the full test suite fresh, then presents exactly four options (merge locally / push + PR / keep branch / discard) and executes the choice, including worktree cleanup. Never merges on failing tests; never discards without typed confirmation."
 metadata:
-  phase: 9
+  phase: 10
   produces: "merged branch, opened PR, preserved branch, or (confirmed) discarded work"
   next: "devarm-retro (recommended after ship)"
 ---
@@ -20,7 +20,14 @@ earlier turn does not count.
 **Env bleed sanity check:** if failures involve `Settings()` defaults, integration status flags,
 or dry-run toggles with no feature-code change, inspect developer `backend/.env` (or equivalent)
 leaking into tests before blaming the branch — fix or document `conftest` isolation first (spec
-022: `PR_CREATION_DRY_RUN` / Guru creds). If optional deps block part of the suite (e.g.
+022: `PR_CREATION_DRY_RUN` / Guru creds). **Fixture-path bleed:** when a mass of unrelated unit
+tests fail together (publish/action/git scope) while feature-targeted tests pass, check whether
+a hardcoded mock repository path (e.g. `/tmp/repo`) **exists on disk** as an empty or stale
+directory — path sanitizers that require files to exist in the worktree will strip mocked
+allowlists and produce false reds. Confirm by reproducing on `main` or removing the stray path
+before chasing branch regressions. *Session evidence (spec 032): empty `/tmp/repo` caused 35
+failures across publish/action tests; all green after removal + conftest cleanup fixture.* If
+optional deps block part of the suite (e.g.
 `tree_sitter_python`), state the exclusion explicitly in the verification report; do not treat
 "full suite" as green while silently skipping paths.
 
@@ -30,10 +37,15 @@ Also confirm the findings ledger has no `open` blocking rows and the Decision Le
 **Pre-PR / pre-push integrity (when the user asks for a PR):** before `git push` or
 `gh pr create`, confirm (1) `git status` shows **no untracked files imported by staged code**
 (new modules referenced by modified files must be staged), (2) ruff/lint was run on **new test
-files** with the same scope CI uses (local IDE-only checks miss SIM115-style rules), and (3) for
-git/worktree features, at least one real-git fixture test exists if the plan required it. *Session
-evidence (spec 027): core `pr_reuse.py` modules were untracked at PR time; CI failed on ruff
-SIM115 + checkout cleanup test after diagnostic added `rev-parse`.*
+files** with the same scope CI uses (local IDE-only checks miss SIM115-style rules), (3) for
+git/worktree features, at least one real-git fixture test exists if the plan required it, and
+(4) backend unit tests were run with the **same command CI uses** (e.g. `pytest tests/unit -q`
+from `backend/`) — a feature-targeted subset is not sufficient for PR/merge, (5) **staging
+parity:** no feature wiring remains unstaged while new modules are staged — run
+`git diff --name-only` and `git diff --cached --name-only`; every importer of a staged module
+(`unified.py`, workflow glue, skill cross-refs, `conftest` fixes) must appear in the index.
+*Session evidence (spec 032): `nr_link_intake.py` staged but `unified.py` /
+`remediation_workflow.py` unstaged at finish; spec 027: core modules untracked at PR time.*
 
 ## Step 2 — Determine the base branch
 

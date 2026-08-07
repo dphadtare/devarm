@@ -2,7 +2,7 @@
 name: "devarm-implement"
 description: "Use to execute a tasks.md produced by devarm-tasks. Runs tasks one at a time with strict TDD (red → green → refactor), verifies with real command output before claiming anything is done, and reports commit-ready checkpoints. Never run git commit unless the developer explicitly asks for that commit. Optionally dispatches a fresh subagent per task with review between tasks. Ends by offering devarm-review."
 metadata:
-  phase: 7
+  phase: 8
   produces: "working code with green tests + commit-ready checkpoint summaries"
   next: "devarm-review"
 ---
@@ -34,6 +34,14 @@ metadata:
    stale line numbers. *Session evidence: planning on a branch 2 commits behind `main` changed
    SKILL.md from 382 to 351 lines; every edit anchor was still correct but the line budget was
    wrong.*
+5. **Shared-surface collateral check (when editing a high-traffic module already on `main`).**
+   Before the first edit to a god-file / shared route/repo/worker module (e.g. `routes.py`,
+   `repositories/ticket_job.py`, `worker.py`), diff that path against `main` (or the merge-base)
+   and list sibling behaviors already present on the file (soft-delete, list filters, aggregates,
+   auth guards). After your edits, keep or restore at least one contract/unit test that would
+   fail if those sibling behaviors were deleted — do not "win" your feature by silently removing
+   another. *Session evidence (spec 030): concurrent soft-delete (#107) on the same files was
+   stripped during multi-pod edits; DELETE returned 405 and list-filter asserts broke.*
 
 ## Execution loop (per task)
 
@@ -57,6 +65,16 @@ written before its test, RED must FAIL not error, test-quality rules, anti-patte
    → patch `backend.services.git.repo_publish._run_git`, not the caller module attribute).
    *Session evidence (spec 027): diagnostic head-commit `rev-parse` broke CI because checkout
    cleanup tests did not mock the new subprocess call.*
+   **OpenCode skill repo contract:** when adding or modifying
+   `backend/opencode/skills/**/SKILL.md`, run the repo's skill-content test module (e.g.
+   `pytest tests/unit/test_skill_content_requirements.py -q` from `backend/`) **or** the same
+   full backend unit command CI uses (`pytest tests/unit -q`) — a feature-targeted subset alone
+   is not sufficient. *Session evidence (spec 029): targeted 029 tests passed; CI failed on
+   missing untrusted-input guard + reference-only classification for a new skill.*
+   **Alembic graph:** when adding or editing `**/alembic/versions/**`, run `alembic heads` and
+   require a **single** head whose `down_revision` is the previous tip — never reuse a revision
+   id already on `main`. *Session evidence (spec 030): lease migration reused `0026` already
+   taken by soft-delete → dual heads / broken migrate graph.*
 5. **Checkpoint** — report the changed files, verification evidence, any trade-off ledger rows
    logged since the last checkpoint (batched for veto, per the batching rule below), and a
    suggested commit message. Never run `git commit` unless the developer explicitly asks for
@@ -165,6 +183,13 @@ Completed, unaffected work stays; affected completed work gets an explicit rewor
 - Fix lints you introduce. Don't leave dead code or half-finished refactors.
 
 ## Hand off
+
+When tasks are green and verified, **before offering `devarm-review`**, if the feature changed
+multi-pod / multi-process / ownership topology (or the user asked for an implementation
+diagram), show one mermaid of what was *actually implemented* (components + claim/lease/
+schedule paths) so the operator mental model matches the code — not only the design doc.
+*Session evidence (spec 030): user asked "show me implementations in diagram format so I can
+understand what we implemented" after the coding pass.*
 
 When tasks are green and verified, offer `devarm-review`; after findings are closed,
 `devarm-finish` handles merge/PR/cleanup.

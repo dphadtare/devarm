@@ -2,7 +2,7 @@
 name: "devarm-plan"
 description: "Use after devarm-spec to produce an implementation plan an engineer with zero context could execute. Maps the file structure (what each file is responsible for), then breaks work into bite-sized TDD steps with exact paths and real code — no placeholders. Reuses spec-kit plan/data-model/contracts templates if .specify/ exists. By default, halt after the plan gate and ask whether to run devarm-tasks; continue automatically only when the user explicitly requested end-to-end execution."
 metadata:
-  phase: 4
+  phase: 5
   produces: "plan.md (+ data-model.md, contracts/ if applicable) with a file-structure map"
   next: "halt and ask about devarm-tasks unless end-to-end was explicitly requested"
 ---
@@ -56,7 +56,26 @@ checkpoints. Actual commits require explicit developer confirmation.
    stage; a deletion is not a file that `exists()` on disk, so any existence-based filter silently
    drops it. *Session evidence (spec 028): a reconciliation `revert` (a deletion) was stripped at 4
    `sanitize_publish_paths` sites + 2 discard sites; because each stage was found one at a time, it
-   took 3 full live-E2E cycles (L1→L1b→L1c) to converge.* If a seam
+   took 3 full live-E2E cycles (L1→L1b→L1c) to converge.* **OpenCode skill contract seam
+   (required when adding `backend/opencode/skills/<name>/`):** specify producing vs
+   reference-only (overlay loaded by another phase), require the standard untrusted-input
+   guard, name the repo skill-content test module in the plan, and add a polish-task to run CI's
+   full backend unit command — not only feature-targeted tests. *Session evidence (spec 029):
+   targeted tests passed; CI failed on `test_skill_content_requirements`.* **Migration graph
+   seam (required when adding an Alembic/DB revision):** cite the current single `alembic heads`
+   revision as `down_revision`; assign a **new** revision id that does not collide with any
+   revision already on `main` or another in-flight branch; add a polish/verify step that re-runs
+   `alembic heads` and fails the plan if more than one head appears. *Session evidence (spec 030):
+   lease columns and soft-delete both claimed `0026` → migrate graph broken until renumbered to
+   `0027`.* **Settings/config patch seam (required when planned tests patch application
+   settings or process-global config):** resolve the *binding site*, not a guess. If production
+   code does `from backend.config import settings` (module-level **or** function-local), the plan's
+   test patch MUST target `backend.config.settings.<attr>` (or the module that actually holds the
+   bound name). Do **not** invent `feature_module.settings` unless that attribute exists at module
+   scope — a local import ignores it and the patch is a silent no-op. Cite the import form
+   (`module` vs `local`) next to the patch string. *Session evidence (026 GitHub App hardening):
+   plan/tests first patched `github_app_auth.settings`; `get_github_app_authenticator` locally
+   imports `backend.config.settings` → analyze A5 HIGH before implement.* If a seam
    genuinely cannot be specified yet, add an explicit **spike task**
    to resolve it BEFORE the implementation task that depends on it — never defer it into the
    impl task itself.

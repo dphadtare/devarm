@@ -2,7 +2,7 @@
 name: "devarm-tasks"
 description: "Use after devarm-plan to generate an actionable, dependency-ordered tasks.md. Groups work so each unit has a failing test task before its implementation task (TDD-first), marks parallelizable tasks, and includes exact file paths. Reuses spec-kit tasks template if .specify/ exists. By default, halt after the tasks gate and ask whether to run devarm-analyze; continue automatically only when the user explicitly requested end-to-end execution."
 metadata:
-  phase: 5
+  phase: 6
   produces: "tasks.md (tests-first, dependency-ordered, [P] parallel markers)"
   next: "halt and ask about devarm-analyze unless end-to-end was explicitly requested; implementation still requires clean analyze"
 ---
@@ -62,6 +62,12 @@ metadata:
   post-checkout fetch — mock-only `_run_git` tests are necessary but not sufficient for merge.
   *Session evidence (spec 027): D7 git reuse mode; mocked suite passed; live E2E found P0 mirror
   layout bugs.*
+  When tasks add a **new OpenCode skill directory**, include an acceptance task that the skill
+  satisfies the repo skill-content contract: standard `## Untrusted Input` guard; classify as
+  **producing** (requires ` ```json ` delivery markers) vs **reference-only** (overlay loaded
+  by another phase — update the repo's reference-only allowlist test if applicable). *Session
+  evidence (spec 029): new `tc-fix-verification-policy` shipped without either; CI blocked on
+  `test_all_skills_guard_against_untrusted_input` and `test_all_producing_skills_require_json_delivery`.*
 
 ## Format
 

@@ -2,7 +2,7 @@
 name: "devarm-retro"
 description: "Use after a feature ships, or after a painful/back-and-forth session, to turn the session into improvements to the devarm method itself. Analyzes a session transcript, compares what happened against the pipeline, identifies decisions made late / bugs that a gate should have caught / avoidable back-and-forth, and proposes concrete edits plus a suggested commit summary for the devarm repo. Never run git commit unless the developer explicitly asks for that commit. This is how devarm compounds your judgment over time."
 metadata:
-  phase: 10
+  phase: 11
   produces: "a retro report + proposed edits + suggested commit summary"
   next: "wait for developer confirmation before any git commit"
 ---
@@ -37,6 +37,11 @@ note where time actually went (usually a long review/fix tail).
   acceptance test (decision→test traceability gap).
 - **Back-and-forth drivers** — re-fed review transcripts, duplicate "fix it" turns, re-litigated
   settled decisions, two planning systems, uncommitted long runs.
+- **Method adoption** — when the user says they will adopt an external pattern into devarm
+  (Superpowers skill-check, Spec Kit clarify, findgap behavior), record it as a **native gate
+  proposal** in Step 4 — absorb the behavior into `devarm-*` skills / `AGENTS.md`, do not leave
+  the repo depending on the external tool. Domain skills (ticket postmortem, etc.) stay external
+  but belong in the session method inventory.
 
 ### Step 3 — Map each finding to a devarm gate
 

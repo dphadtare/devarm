@@ -2,7 +2,7 @@
 name: "devarm-review"
 description: "Use when a major step completes or before merge, to review the work against the grounded design, the Decision Ledger, and the repo's principles. Applies an architecture lens and a QA lens (the useful, transferable part of persona-based methods) without a heavyweight persona framework. Produces prioritized, actionable review notes."
 metadata:
-  phase: 8
+  phase: 9
   produces: "prioritized review notes (blocking / should-fix / nit)"
   next: "devarm-implement (to address) or devarm-finish (to integrate)"
 ---
@@ -97,6 +97,12 @@ defer or downgrade items that contradict locked decisions or grounded design.
 **Check every finding against the Decision Ledger first.** A finding that contradicts a recorded
 `owner: user` decision is `by-design`, not a bug, unless the user explicitly reopens it — this
 stops reviews from re-litigating settled decisions (a real source of churn in a past session).
+Also check **status language**: rows marked `deferred for this PR`, `deploy-gate`,
+`out-of-scope`, or `follow-up` must land in **Defer / optional** (or ops cutover gates), never
+**Required for merge**, even when a later `/findgap` re-labels them High. *Session evidence
+(spec 030 + 026 hardening): findgap re-ranked ledger-deferred residuals (zombie-cancel; Git
+401 remint; R2 URL-inject; Helm encoding) as top-5 merge urgency until challenge restored the
+ledger split.*
 
 ## Receiving feedback (when you are the implementer working the ledger)
 
@@ -119,12 +125,32 @@ stops reviews from re-litigating settled decisions (a real source of churn in a 
   smuggle a redesign into a "fix". This is distinct from the reviewer-side "check findings against
   the ledger" rule above — that screens findings; this screens the *fixes* you apply to them.
 
+## Code-grounded spec reconcile (native clarify)
+
+When the user asks a verification question during review ("will X URL/host work?", "is behavior
+Y implemented?"), invoke **`devarm-clarify` code-grounded mode** — not pre-plan question loops:
+
+1. Answer from implementation evidence (`file:line`) first.
+2. Update `spec.md` Clarifications + FR/edge cases if the spec was silent or wrong.
+3. If code contradicts a locked ledger row, flag as defect — do not silently edit the ledger.
+
+External `/speckit-clarify` may be used only when `.specify/` exists **and** feature-dir sanity
+passes; native `devarm-clarify` is sufficient. *Session evidence (spec 032): post-implement
+`one.newrelic.com` question updated FR-001/FR-002 after code verification.*
+
 ## End every review turn with an explicit state split
 
-Close each turn with two labeled lists so "fix the issues found" is never ambiguous:
+Close each turn with three labeled lists so "fix the issues found" is never ambiguous:
 
 - **Already fixed this turn** — with the commit if explicitly authorized, otherwise with the
   diff/checkpoint evidence.
-- **Awaiting your decision** — findings that need the user's call before action.
+- **Required for merge** — defects/CI holes that block ship. Implement these next unless the
+  user says otherwise.
+- **Defer / optional** — by-design residuals, coverage nits, ledger-accepted risks, polish.
+  Do **not** implement these on a bare "fix the findings" — wait for an explicit include, or
+  the user's "fix required / ignore the rest" split. *Session evidence (spec 030): findgap
+  repeatedly re-ranked zombie-cancel / renew-loop / strip-on-reuse as top-5; challenge +
+  required-only fix closed the real blockers (soft-delete collateral, Alembic dual-head) without
+  expanding scope.*
 
 (Ambiguity here caused duplicate "fix it" turns on already-applied fixes in a past session.)

@@ -24,6 +24,19 @@ visualization artifacts unless the user explicitly asks for devarm or the work c
 behavior, architecture, or the devarm method itself. If applicability is ambiguous, ask whether
 to use devarm instead of invoking it by default.
 
+**Review vs design:** `/findgap` and similar **external** code-review commands are for
+**implemented diffs** — native equivalent is `devarm-review`. During brainstorm/design turns,
+answer product and architecture questions directly; do not treat every user message with a findgap
+attachment as a request to audit non-existent code. *Session evidence (spec 032): findgap was
+attached to ~10 design Q&A turns before implementation started.*
+
+**Preserve existing capability:** when the user cites an existing tool, service, MCP wiring, or
+skill ("we already have X", "confirm ground reality", "don't change X wiring"), **stop proposing
+replacements** until `devarm-ground` records a **`PRESERVE`** row in the Reuse Inventory with
+live-path evidence (`file:line`). New work must state how it coexists without replacing the
+preserved path. *Session evidence (spec 032): LLM NR MCP tools preserved; server-side link
+intake added as parallel scoped path — D1/D5/D10.*
+
 ## Checklist (create a task per item, complete in order)
 
 1. **Explore project context.** Read the relevant files, docs, and recent commits. In an
@@ -56,16 +69,32 @@ to use devarm instead of invoking it by default.
 5. **Present the design in sections** scaled to complexity (a few sentences for simple parts,
    up to ~250 words for nuanced ones). Cover: architecture, components, data flow, error
    handling, testing. Ask after each section whether it looks right. Revise as needed.
+   **Architecture diagram gate (required before concluding a multi-component / multi-pod /
+   multi-process section, and again before the approval ask):** show at least one mermaid
+   (or equivalent) diagram of the proposed shape — boxes for components/pods, arrows for
+   claim/lease/schedule/fail paths — *before* asking "does this look right?" or moving to the
+   next problem. Prose-only architecture is not enough when the user must choose among
+   deployments, leaders, or ownership models. *Session evidence (spec 030): user had to ask
+   twice ("show me design in the diagram formats" / "show me design… in diagram representation")
+   before Problem A and Problem B approvals.*
 6. **Write the draft design doc** to `docs/design/YYYY-MM-DD-<topic>-design.md` (or the target
    repo's configured design location, e.g. `docs/superpowers/specs/`). Use
-   `devarm/templates/design-doc.md` as the structure.
+   `devarm/templates/design-doc.md` as the structure. Include the mermaid diagram(s) from step 5
+   in the doc so approval is against the same visual, not conversation memory.
 7. **Spec self-review** (inline): scan for placeholders/TBDs, internal contradictions, scope
    creep, and requirements that could be read two ways. Fix inline.
 8. **Run devarm-ground** on the draft — BEFORE asking for approval. Grounding may send you back
    to revise sections 4-6; that is expected and is the point.
 9. **User approval gate.** Only after grounding passes, ask the user to approve the written,
    grounded design. If they request changes, revise and re-ground.
-10. **Phase gate / handoff.** Report the design path, grounding result, approval state, and
+10. **Method inventory (on user request OR at design-lock before handoff).** Table what ran this
+    session and what it produced — native devarm phases, optional external adapters (if any), and
+    domain/project skills (e.g. ticket postmortem). Columns: `Item | Native/external | Used? |
+    Artifact/output | Reuse next time`. When the user says they will adopt an external pattern
+    into devarm, note it for `devarm-retro` — do not leave adoption intent only in chat.
+    *Session evidence (spec 032): user asked "what tools/skills did we use?" and planned to adopt
+    Superpowers skill-check into devarm — now native in `AGENTS.md` invocation preamble.*
+11. **Phase gate / handoff.** Report the design path, grounding result, approval state, and
     recommended next phase (`devarm-spec`). By default, STOP and ask the user whether to run
     `devarm-spec`. Invoke `devarm-spec` only if the user explicitly requested end-to-end
     execution for this work or has just told you to continue. Do not treat silence as approval
@@ -96,10 +125,26 @@ each answer becomes a candidate Decision Ledger row so it can't be re-litigated 
   `**Recommended:** <option> — <1-2 line reason>` above the options and tell the user a plain
   "yes" accepts it. Prioritize remaining questions by impact × uncertainty — never spend two
   low-impact questions while a high-impact area is unresolved.
+- **Disposition batch (≥3 Recommended remedies / R-items).** When locking a list of three or
+  more action dispositions (review remedies, challenged-finding approaches, "items that require
+  action"), present the **full batch** with Recommended on each row and
+  `Reply "accept all recommended" (or override by ID)` — same shape as `devarm-analyze` Pass 3.
+  Do **not** burn one turn per item asking "recommended?" even if the user said "discuss one by
+  one"; sequential deep-dives are optional *after* the batch is on the table, not a substitute
+  for the batch lock. *Session evidence (026 hardening): seven consecutive "recommended" turns
+  then "Accept all recommended dispositions".*
+- **Confusion / decide stop.** If the user says they don't understand, asks to elaborate, or
+  asks "help me decide / help me understand X", **stop the recommendation loop**. Re-explain
+  the contested point in plain language (with a small diagram when the confusion is about
+  topology or ownership), then ask one focused question — do not pile the next Recommended
+  choice on top of unresolved confusion. *Session evidence (spec 030): "I am not getting the
+  problem…", "Help me decide what is good fit", "Help me understand scheduler Deployment
+  replicaCount: 1" arrived mid-Q loop; continuing with more options without re-grounding the
+  mental model wastes turns.*
 - **Follow the fork.** If an answer opens a new decision (an answer like "sequential is fine,
-  but the fallback needs expansion" contains 2-3 embedded decisions), play back your
-  restatement of what they decided and ask the next question the answer created — don't move
-  on with your own interpretation.
+   but the fallback needs expansion" contains 2-3 embedded decisions), play back your
+   restatement of what they decided and ask the next question the answer created — don't move
+   on with your own interpretation.
 - **Unanswered ≠ answered.** If the user skips a question, it does NOT default — carry it
   forward as `assumed — awaiting confirmation` and re-surface it at the approval gate.
 - **Stop condition:** questioning is done when every map area is answered/N/A **and** the last

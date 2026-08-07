@@ -2,7 +2,7 @@
 name: "devarm-analyze"
 description: "Use after devarm-tasks and BEFORE devarm-implement — a mandatory gate with three passes: (1) cross-artifact consistency (design ↔ spec ↔ plan ↔ tasks ↔ Decision Ledger), (2) architecture-vs-codebase verification that re-checks every integration claim against the CURRENT code, since the repo may have moved since grounding, and (3) an interactive implementation-decision brainstorm — a control-flow walkthrough with the user that batch-decides every foreseeable implementation decision before any code. Also traces the flagship user story end-to-end on paper. Blocks implementation until CRITICAL/HIGH findings are resolved and Pass 3 decisions are recorded. Also usable as a scoped re-gate after course corrections or large fix batches. By default, halt after the analyze report and ask whether to run devarm-implement; continue automatically only when the user explicitly requested end-to-end execution."
 metadata:
-  phase: 6
+  phase: 7
   produces: "analysis report (severity-ranked findings) + batch-decided implementation decisions in the ledger; implementation blocked until CRITICAL/HIGH resolved"
   next: "halt and ask about devarm-implement once clean unless end-to-end was explicitly requested"
 ---
@@ -58,12 +58,25 @@ CURRENT working tree:
   runtime artifact change):** Wording-lock tests prove a substring exists; they do **not** prove
   sections agree. Enumerate every section touched AND every section those sections reference;
   for each pair, trace at least one realistic population where both apply (empty list, anchorless
-  entry, test-file path, deferral/waiver path, sibling-deferred path). If a new rule could
+  entry, test-file path, deferral/waiver path, sibling-deferred path). Include **workflow-order
+  pairs** — an earlier section whose SUCCESS/FAIL gate runs before a later qualified section
+  (e.g. Phase 1 item 6 before Phase 1b item 5) — not only same-heading pairs. If a new rule could
   contradict an existing one on that population, it is a **HIGH** finding unless the plan/tasks
   include either (a) an explicit carve-out in the new text, or (b) a routing characterization
   test that executes the ship-gate predicate before/after. *Session evidence (026 semantic
   minimality): item 10 blocked all runs with zero expectations (F1); correctness floor
-  contradicted Phase 1e test-file severity (G1) — both passed all wording-lock tests.*
+  contradicted Phase 1e test-file severity (G1) — both passed all wording-lock tests. Spec 029:
+  Phase 1 "Missing tests" unqualified while Phase 1b was qualified — findgap/challenge caught
+  after analyze/review; wording-lock green throughout.*
+- **New OpenCode skill contract (when plan adds `backend/opencode/skills/<name>/`):** verify
+  tasks cover untrusted-input guard, producing vs reference-only classification, and a run of
+  the repo skill-content test module — not only feature-specific wording-lock tests.
+- **Settings/config patch targets (when plan/tasks patch settings):** open the production
+  import(s) the code under test uses. If settings are imported locally or from `backend.config`,
+  confirm the planned `patch("…")` string resolves to that object — a HIGH finding if the plan
+  patches a module attribute that does not exist / is never read (silent no-op). *Session
+  evidence (026 hardening): `patch("…github_app_auth.settings")` was a no-op against a local
+  `from backend.config import settings`.*
 
 ## Pass 3 — Implementation-decision brainstorm (interactive, with the user)
 
@@ -79,8 +92,14 @@ resolved), in this order:
    downgrade, no unintended close/reset) with the right side-effects and owning module. A missing
    or hand-waved cell is a HIGH finding, not a coding-time detail. *Why: this session's fix tail
    was almost entirely unenumerated state-transition cells (F1/F3/F6/L1/R2→R3) that a narrative-only
-   walkthrough let through.* An objection is a reopened decision → handle via
-   `devarm-brainstorm`'s back-and-forth protocol (supersede + ripple-check), not an inline patch.
+   walkthrough let through.* **Shared policy matrix (required when centralizing
+   create/requeue/claim across channels):** for each active status × each channel, state the
+   operator-visible outcome (reuse / supersede / reject / create) and whether the ticket can
+   become stuck or lose resume. Walking only the idle/queued happy path ships wrong pause
+   semantics. *Session evidence (spec 030): D2 initially reused `waiting_signal`; operators
+   could not requeue — superseded mid-flight after review (R-01).* An objection is a reopened
+   decision → handle via `devarm-brainstorm`'s back-and-forth protocol (supersede + ripple-check),
+   not an inline patch.
 2. **Enumerate the foreseeable implementation decisions.** Collect into one list: (a) every
    ledger row still `assumed — awaiting confirmation` or `owner: user` and undecided; (b) every
    implementation trade-off visible from the plan/tasks (module placement, error-handling
@@ -90,7 +109,12 @@ resolved), in this order:
    `**Recommended:** <option> — <1-2 line reason>`; tell the user a plain "yes" accepts all
    recommendations, or they can override per item. List `owner: user` design-level items FIRST
    and under their own heading, separate from routine trade-offs, so a batch "yes" never buries
-   an intent-level decision. Record every answer as a Decision Ledger row.
+   an intent-level decision. For each `owner: user` **deploy-gate** / ops residual (secret
+   encoding, ExternalSecret shape, live smoke), add one plain sentence: **blocks env cutover,
+   not code merge** (or the inverse if it truly blocks merge) — so "yes" does not leave the
+   user unclear why the item is still open. *Session evidence (026 hardening): user had to ask
+   separately to understand FG-03 / R3 `b64dec` after analyze clean.* Record every answer as a
+   Decision Ledger row.
 4. **Exit criterion.** The target is that `devarm-implement` asks the user near-zero questions:
    only genuine design-level surprises may interrupt coding. A foreseeable trade-off that still
    surfaces mid-implementation is a Pass-3 miss — `devarm-implement` logs it for `devarm-retro`.
