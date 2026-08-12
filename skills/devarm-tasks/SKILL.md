@@ -11,6 +11,17 @@ metadata:
 
 "I'm using devarm-tasks to generate the dependency-ordered, tests-first task list."
 
+## Artifact and evidence handoff contract
+
+Before acting or resuming, read the current repository rules, current artifacts, and the diff;
+current evidence takes precedence over any stale summary. Revalidate artifacts before handoff and
+record the optional validator output. Confirm requirement/ledger-to-task traceability and
+risk-based quality coverage, including negative tests for every safety invariant. Optional
+adapters may supply templates or workflow guidance, but adapter use cannot bypass native gates.
+
+If the validator is unavailable, record that limitation and keep the human checklist authoritative.
+Deterministic errors block the handoff; warnings remain visible and do not imply approval.
+
 ## Rules
 
 - **Tests first (TDD).** Each behavior gets a failing-test task BEFORE its implementation task.
@@ -36,7 +47,7 @@ metadata:
   to be non-schedulable / preserving gets an acceptance test asserting its **terminal state and
   side-effects** — and the forbidden outcomes as negatives (does NOT loop / does NOT downgrade /
   does NOT close-or-reset an active entity). A per-transition test is the guard; a happy-path-only
-  suite lets a wrong terminal state ship. *Why (this session): "repair preserves an active
+  suite lets a wrong terminal state ship. *General rationale: "repair preserves an active
   investigation" was broken by the unsupported-close path (L1) and a two-mention downgrade (F6)
   because no test pinned those transitions' terminal states.*
   When a decision's deliverable is prompt/skill/contract **wording** (an enum value, a
@@ -47,12 +58,12 @@ metadata:
   When a deliverable includes **operator-visible escalation or notification copy**, the
   acceptance test must assert strings appear in the rendered message (e.g.
   `build_diagnosis_escalation_user_message` output), not only that a dict exists on
-  `final_output` — spec 022 SC-005 shipped dict-level coverage while Jira copy stayed thin until
+  `final_output` — a prior failure SC-005 shipped dict-level coverage while issue tracker copy stayed thin until
   a follow-up fix.
   When a new skill/prompt rule can change a **ship-gate boolean** (an existing Python predicate
   on phase output — waiver, override, `blocks_pr`, retry routing), add a **routing
   characterization test** that executes the predicate on a constructed payload and asserts the
-  measured before/after, not only a wording-lock on the instruction text. *Session evidence:
+  measured before/after, not only a wording-lock on the instruction text. *Failure-class rationale:
   changing finding severity from `warning` to `error` flipped
   `review_allows_test_file_deferred_review` with no test until findgap — wording locks were
   green throughout.*
@@ -60,20 +71,20 @@ metadata:
   (append reuse, rebase onto base, force-with-lease), the acceptance test MUST include a
   **real-git mirror + worktree fixture** exercising fetch → checkout → at least one
   post-checkout fetch — mock-only `_run_git` tests are necessary but not sufficient for merge.
-  *Session evidence (spec 027): D7 git reuse mode; mocked suite passed; live E2E found P0 mirror
+  *Failure-class rationale (a prior failure): D7 git reuse mode; mocked suite passed; live E2E found P0 mirror
   layout bugs.*
   When a new helper is **only** called from a god-file orchestrator seam, the acceptance task
   MUST include a **behavioral wiring test** that executes the orchestrator method (mocked
   git/phase deps) and asserts the helper's output reaches the downstream callee (e.g. first
   arg to `merge_applied_files`) — a **source grep / substring inspection test alone is not
-  sufficient** and may stay green while the feature is unwired. *Session evidence (spec 033):
+  sufficient** and may stay green while the feature is unwired. *Failure-class rationale (a prior failure):
   T010 source inspection passed; challenge found split-brain (helpers + tests without
-  `unified.py` wiring); DEV-323494 fix did not ship until behavioral test added.*
-  When tasks add a **new OpenCode skill directory**, include an acceptance task that the skill
+  `orchestrator module` wiring); a ticket fix did not ship until behavioral test added.*
+  When tasks add a **new repository-local skill directory**, include an acceptance task that the skill
   satisfies the repo skill-content contract: standard `## Untrusted Input` guard; classify as
   **producing** (requires ` ```json ` delivery markers) vs **reference-only** (overlay loaded
   by another phase — update the repo's reference-only allowlist test if applicable). *Session
-  evidence (spec 029): new `tc-fix-verification-policy` shipped without either; CI blocked on
+  evidence (a prior failure): new `tc-fix-verification-policy` shipped without either; CI blocked on
   `test_all_skills_guard_against_untrusted_input` and `test_all_producing_skills_require_json_delivery`.*
 
 ## Format

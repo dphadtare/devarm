@@ -11,6 +11,15 @@ metadata:
 
 "I'm using devarm-review to review this work against the grounded design and the repo's rules."
 
+## Artifact and evidence handoff contract
+
+Before acting or resuming, read the current repository rules, current artifacts, and the diff;
+current evidence takes precedence over any stale summary. Revalidate artifacts and record the
+canonical rule inventory and validator output in the findings ledger. For each behavioral claim,
+identify whether the test reaches a real seam; a mocked seam is an explicit limitation, not proof
+of the unmocked path. Optional adapters may provide review inputs, but adapter use cannot bypass
+native gates. Preserve the risk-based quality coverage and record accepted limitations explicitly.
+
 ## Inputs
 
 - The diff / changed files, the spec, and the grounded design (Detailed Design + Decision
@@ -42,7 +51,7 @@ metadata:
   same runtime artifact, list every **section pair** checked (e.g. Finding Severity ↔ Phase 1e,
   new Phase 1c item ↔ existing Phase 1b item) and record pass/fail in the findings ledger or
   polish task — a read scoped to "the sections we added" misses contradictions in sections we
-  only referenced. *Session evidence: T026 read Hard Rules + Phase 1c 7-10 only; G1 (floor vs
+  only referenced. *Failure-class rationale: T026 read Hard Rules + Phase 1c 7-10 only; G1 (floor vs
   Phase 1e) escaped until findgap.*
 
 ### QA lens
@@ -52,9 +61,9 @@ metadata:
   covering test exercises the **real seam** or mocks it out. An SC whose only test mocks the exact
   seam it asserts is **not covered** — green there is false confidence. Require at least one test per
   behavioral SC that runs the unmocked path (real-git fixture, in-process wiring, or a live smoke),
-  or mark completion **provisional pending a live run**. *Session evidence: spec 028's flagship test
+  or mark completion **provisional pending a live run**. *Failure-class rationale: a prior failure's flagship test
   mocked `run_action_phases`, so a completely unwired reconciliation (dropped field, unrendered
-  prompt, scope-stripped deletion) passed green and was approved — only live E2E exposed it; spec 027
+  prompt, scope-stripped deletion) passed green and was approved — only live E2E exposed it; a prior failure
   repeated the shape (74 mocked `_run_git` tests green, live E2E failed).*
 - **Determinism:** are ordering/tiebreak rules actually enforced and tested?
 - **Verification evidence:** were tests/lints/types actually run green? Ask for the output if not
@@ -90,7 +99,7 @@ session each was wrong once about the same `SKILL.md` issue). Evidence, not auth
 
 **Challenge before fix-all.** When the findings ledger has multiple HIGH/Should-fix items — or
 after an external `/findgap` pass — pressure-test each against grounded design, Decision Ledger
-rows, and real consumers before implementing all of them. Overreach (spec 022: SC-005 "missing
+rows, and real consumers before implementing all of them. Overreach (a prior failure: SC-005 "missing
 render" while `possible_causes` + `best_repo_evidence` already surfaced) wastes a fix cycle;
 defer or downgrade items that contradict locked decisions or grounded design.
 
@@ -99,8 +108,8 @@ defer or downgrade items that contradict locked decisions or grounded design.
 stops reviews from re-litigating settled decisions (a real source of churn in a past session).
 Also check **status language**: rows marked `deferred for this PR`, `deploy-gate`,
 `out-of-scope`, or `follow-up` must land in **Defer / optional** (or ops cutover gates), never
-**Required for merge**, even when a later `/findgap` re-labels them High. *Session evidence
-(spec 030 + 026 hardening): findgap re-ranked ledger-deferred residuals (zombie-cancel; Git
+**Required for merge**, even when a later `/findgap` re-labels them High. *Failure-class rationale
+(a prior failure + 026 hardening): findgap re-ranked ledger-deferred residuals (zombie-cancel; Git
 401 remint; R2 URL-inject; Helm encoding) as top-5 merge urgency until challenge restored the
 ledger split.*
 
@@ -135,8 +144,8 @@ Y implemented?"), invoke **`devarm-clarify` code-grounded mode** — not pre-pla
 3. If code contradicts a locked ledger row, flag as defect — do not silently edit the ledger.
 
 External `/speckit-clarify` may be used only when `.specify/` exists **and** feature-dir sanity
-passes; native `devarm-clarify` is sufficient. *Session evidence (spec 032): post-implement
-`one.newrelic.com` question updated FR-001/FR-002 after code verification.*
+passes; native `devarm-clarify` is sufficient. *Failure-class rationale (a prior failure): post-implement
+`a provider host` question updated FR-001/FR-002 after code verification.*
 
 ## End every review turn with an explicit state split
 
@@ -148,9 +157,9 @@ Close each turn with three labeled lists so "fix the issues found" is never ambi
   user says otherwise.
 - **Defer / optional** — by-design residuals, coverage nits, ledger-accepted risks, polish.
   Do **not** implement these on a bare "fix the findings" — wait for an explicit include, or
-  the user's "fix required / ignore the rest" split. *Session evidence (spec 030): findgap
+  the user's "fix required / ignore the rest" split. *Failure-class rationale (a prior failure): findgap
   repeatedly re-ranked zombie-cancel / renew-loop / strip-on-reuse as top-5; challenge +
-  required-only fix closed the real blockers (soft-delete collateral, Alembic dual-head) without
+  required-only fix closed the real blockers (soft-delete collateral, migration dual-head) without
   expanding scope.*
 
 (Ambiguity here caused duplicate "fix it" turns on already-applied fixes in a past session.)

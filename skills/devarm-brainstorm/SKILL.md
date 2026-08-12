@@ -11,6 +11,21 @@ metadata:
 
 "I'm using devarm-brainstorm to turn this idea into a grounded, approved design."
 
+## Artifact and rule handoff contract
+
+Before acting, record the active repository and branch in the artifact metadata. Discover
+applicable target-repository instructions and link the canonical rule inventory; the
+target-repository rule wins over a devarm default, and material conflicts require a visible
+disposition. Run the optional validator; if it is unavailable, record the limitation and keep
+the manual checklist authoritative. The optional validator is not required for the native method.
+A deterministic blocking error stops the handoff; warnings remain visible and do not imply
+approval. Preserve explicit approval gates and mark an unanswered decision `assumed — awaiting
+confirmation`. If a settled decision is superseded, ripple-check dependent artifacts and re-check
+the affected evidence before continuing.
+
+The quick track means at most 3 changed files. any persistence change or any contract change
+upgrades the work to the standard track.
+
 ## Hard gate
 
 Do NOT write code, scaffold, or invoke any implementation skill for consequential code/product
@@ -27,14 +42,14 @@ to use devarm instead of invoking it by default.
 **Review vs design:** `/findgap` and similar **external** code-review commands are for
 **implemented diffs** — native equivalent is `devarm-review`. During brainstorm/design turns,
 answer product and architecture questions directly; do not treat every user message with a findgap
-attachment as a request to audit non-existent code. *Session evidence (spec 032): findgap was
+attachment as a request to audit non-existent code. *Failure-class rationale (a prior failure): findgap was
 attached to ~10 design Q&A turns before implementation started.*
 
 **Preserve existing capability:** when the user cites an existing tool, service, MCP wiring, or
 skill ("we already have X", "confirm ground reality", "don't change X wiring"), **stop proposing
 replacements** until `devarm-ground` records a **`PRESERVE`** row in the Reuse Inventory with
 live-path evidence (`file:line`). New work must state how it coexists without replacing the
-preserved path. *Session evidence (spec 032): LLM NR MCP tools preserved; server-side link
+preserved path. *Failure-class rationale (a prior failure): LLM NR MCP tools preserved; server-side link
 intake added as parallel scoped path — D1/D5/D10.*
 
 ## Checklist (create a task per item, complete in order)
@@ -47,9 +62,10 @@ intake added as parallel scoped path — D1/D5/D10.*
 2. **Scope check.** If the idea spans multiple independent subsystems, stop and help decompose
    it into sub-projects first — each gets its own design → spec → plan → implement cycle. Don't
    refine details of something that should be split.
-2b. **Scale gate.** Classify the work and recommend a track (user confirms):
-   - **Quick track** — bug fix or single-story change with a small blast radius (roughly ≤3
-     files, no new persistence, no contract changes). The GATES stay, the ARTIFACTS collapse:
+2b. **Scale gate.** Classify the work and recommend a track (user confirms). The scale gate
+produces a recommended track classification before user confirmation:
+   - **Quick track** — bug fix or single-story change with a small blast radius (at most 3
+     changed files, no persistence change, no contract change). The GATES stay, the ARTIFACTS collapse:
      one short doc holds a few-sentence design, a scoped grounding pass (the touched seams +
      whichever of the 10 categories apply), and a mini task list; skip separate spec/plan/
      analyze docs. Before implement, run the scoped analyze equivalent in that same doc:
@@ -74,7 +90,7 @@ intake added as parallel scoped path — D1/D5/D10.*
    (or equivalent) diagram of the proposed shape — boxes for components/pods, arrows for
    claim/lease/schedule/fail paths — *before* asking "does this look right?" or moving to the
    next problem. Prose-only architecture is not enough when the user must choose among
-   deployments, leaders, or ownership models. *Session evidence (spec 030): user had to ask
+   deployments, leaders, or ownership models. *Failure-class rationale (a prior failure): user had to ask
    twice ("show me design in the diagram formats" / "show me design… in diagram representation")
    before Problem A and Problem B approvals.*
 6. **Write the draft design doc** to `docs/design/YYYY-MM-DD-<topic>-design.md` (or the target
@@ -92,7 +108,7 @@ intake added as parallel scoped path — D1/D5/D10.*
     domain/project skills (e.g. ticket postmortem). Columns: `Item | Native/external | Used? |
     Artifact/output | Reuse next time`. When the user says they will adopt an external pattern
     into devarm, note it for `devarm-retro` — do not leave adoption intent only in chat.
-    *Session evidence (spec 032): user asked "what tools/skills did we use?" and planned to adopt
+    *Failure-class rationale (a prior failure): user asked "what tools/skills did we use?" and planned to adopt
     Superpowers skill-check into devarm — now native in `AGENTS.md` invocation preamble.*
 11. **Phase gate / handoff.** Report the design path, grounding result, approval state, and
     recommended next phase (`devarm-spec`). By default, STOP and ask the user whether to run
@@ -131,13 +147,13 @@ each answer becomes a candidate Decision Ledger row so it can't be re-litigated 
   `Reply "accept all recommended" (or override by ID)` — same shape as `devarm-analyze` Pass 3.
   Do **not** burn one turn per item asking "recommended?" even if the user said "discuss one by
   one"; sequential deep-dives are optional *after* the batch is on the table, not a substitute
-  for the batch lock. *Session evidence (026 hardening): seven consecutive "recommended" turns
+  for the batch lock. *Failure-class rationale (026 hardening): seven consecutive "recommended" turns
   then "Accept all recommended dispositions".*
 - **Confusion / decide stop.** If the user says they don't understand, asks to elaborate, or
   asks "help me decide / help me understand X", **stop the recommendation loop**. Re-explain
   the contested point in plain language (with a small diagram when the confusion is about
   topology or ownership), then ask one focused question — do not pile the next Recommended
-  choice on top of unresolved confusion. *Session evidence (spec 030): "I am not getting the
+  choice on top of unresolved confusion. *Failure-class rationale (a prior failure): "I am not getting the
   problem…", "Help me decide what is good fit", "Help me understand scheduler Deployment
   replicaCount: 1" arrived mid-Q loop; continuing with more options without re-grounding the
   mental model wastes turns.*

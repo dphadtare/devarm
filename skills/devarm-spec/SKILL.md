@@ -11,6 +11,21 @@ metadata:
 
 "I'm using devarm-spec to write the testable specification from the grounded design."
 
+## Artifact and rule handoff contract
+
+Before acting, record the active repository and branch in the artifact metadata. Discover
+applicable target-repository instructions and link the canonical rule inventory; the
+target-repository rule wins over a devarm default, and material conflicts require a visible
+disposition. Run the optional validator; if it is unavailable, record the limitation and keep
+the manual checklist authoritative. The optional validator is not required for the native method.
+A deterministic blocking error stops the handoff; warnings remain visible and do not imply
+approval. Preserve explicit approval gates and mark an unanswered decision `assumed — awaiting confirmation`.
+If a settled decision is superseded, ripple-check dependent artifacts and re-check the affected
+evidence before continuing.
+
+When `.specify/` is absent, use the native fallback `templates/spec-doc.md` and retain its
+quality gate before handing off to clarify.
+
 ## Where the spec lives
 
 - If the target repo has a `.specify/` (spec-kit) directory: create the feature via its flow

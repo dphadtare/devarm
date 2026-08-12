@@ -22,13 +22,29 @@ approved, which is what keeps decisions out of implementation.
 | 4 | **Clarify** | `devarm-clarify` | `spec.md` Clarifications + resolved ambiguities | Up to 5 material questions answered (or explicit skip with logged risk) |
 | 5 | Plan | `devarm-plan` | `plan.md` + file-structure map | Every requirement maps to a task; no placeholders |
 | 6 | Tasks | `devarm-tasks` | `tasks.md` (tests-first, ordered) | Each behavior has a failing test task before impl |
-| 7 | **Analyze** | `devarm-analyze` | severity-ranked findings report + batch-decided implementation decisions | Artifacts consistent AND re-verified vs current code; flagship story traced end-to-end; remaining implementation decisions batch-decided with the user |
+| 7 | **Analyze** | `devarm-analyze` | `analysis.md` severity-ranked findings report + batch-decided implementation decisions | Artifacts consistent AND re-verified vs current code; flagship story traced end-to-end; remaining implementation decisions batch-decided with the user |
 | 8 | Implement | `devarm-implement` | code + green tests | Verification run and confirmed before "done" |
 | 9 | Review | `devarm-review` | review notes + findings ledger | Architecture + QA lens against principles + ledger |
 | 10 | Finish | `devarm-finish` | merged branch / PR / kept / discarded | Fresh full-suite green; four structured options; typed confirm to discard |
 | 11 | Retro | `devarm-retro` | proposed edits + suggested commit summary | Session analyzed; method improved |
 | — | Debug (on-demand) | `devarm-debug` | root cause + failing test + one verified fix | No fix without root cause; 3 failed fixes → question the architecture |
 | — | TDD (core discipline) | `devarm-tdd` | behavior locked by a test seen to fail first | No production code without a failing test; code-before-test gets deleted |
+
+## Portable artifact and rule contract
+
+Every repository-local artifact carries common artifact metadata: repository, branch, status,
+phase, pipeline, last verification, open risks, next gate, and related artifacts. The design
+owns the canonical rule inventory; the target-repository rule wins over a devarm default, and a
+conflict gets a visible disposition. An optional standard-library validator may report blocking
+errors and visible warnings, but the optional validator does not replace human judgment and
+approval gates remain authoritative.
+
+Partial, failed, and blocked work preserves its artifacts and can resume only after current rules,
+artifacts, and diff are revalidated. Adapter-present work records the adapter, output, and reuse;
+adapter-absent work runs the same native gates. The method inventory is the durable record of that
+choice. Source rules are classified as Adopt, Adapt, or Target-only; target-specific rules are not
+silently promoted into the portable core. Retro proposals name motivating evidence and verification
+evidence before changing the method.
 
 ## When to invoke each skill
 

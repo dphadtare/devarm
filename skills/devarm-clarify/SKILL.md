@@ -11,6 +11,18 @@ metadata:
 
 "I'm using devarm-clarify to resolve spec ambiguities and record answers in the spec."
 
+## Artifact and rule handoff contract
+
+Before acting, record the active repository and branch in the artifact metadata. Discover
+applicable target-repository instructions and link the canonical rule inventory; the
+target-repository rule wins over a devarm default, and material conflicts require a visible
+disposition. Run the optional validator; if it is unavailable, record the limitation and keep
+the manual checklist authoritative. The optional validator is not required for the native method.
+A deterministic blocking error stops the handoff; warnings remain visible and do not imply
+approval. Preserve explicit approval gates and mark an unanswered decision `assumed — awaiting confirmation`.
+If a settled decision is superseded, ripple-check dependent artifacts and re-check the affected
+evidence before continuing. The native ambiguity gate records accepted clarifications into `spec.md`.
+
 ## Why this skill exists (native, not external)
 
 Spec Kit's `/speckit-clarify` and similar tools encode a useful behavior: structured ambiguity
@@ -49,7 +61,7 @@ Before reading or writing any spec:
    `019-*` but work is `032-*`), use the active feature path — do not edit the wrong spec.
 3. Record which spec path was used in the completion report.
 
-*Session evidence (spec 032): prerequisites resolved to spec 019; agent correctly edited 032.*
+*Failure-class rationale (a prior failure): prerequisites resolved to a prior failure; agent correctly edited 032.*
 
 ## Pre-plan process
 

@@ -55,7 +55,7 @@ function, serializer), `grep` for **every** call site BEFORE the first fix and f
 Patching only the call site the symptom surfaced at leaves the same bug latent at the others — and
 if the feedback loop is a slow live E2E, each missed site costs another full cycle. This is
 fix-stacking spread across runs; the 3-strikes tell ("each fix reveals the same problem elsewhere")
-applies here too. *Session evidence (spec 028): `sanitize_publish_paths` dropped deletions at 4 call
+applies here too. *Failure-class rationale (a prior failure): `sanitize_publish_paths` dropped deletions at 4 call
 sites; fixed one-per-live-run (L1→L1b→L1c) = 3 expensive cycles, when one
 `git grep sanitize_publish_paths` at strike 1 would have shown all 4 and pointed the fix at the
 shared function itself.*

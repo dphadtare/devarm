@@ -11,6 +11,40 @@ metadata:
 
 "I'm using devarm-retro to turn this session into improvements to the method."
 
+## Artifact and evidence handoff contract
+
+Before acting or resuming, read the current repository rules, current artifacts, and the diff;
+current evidence takes precedence over any stale summary. Revalidate artifacts and record the
+validator output and verification evidence in the retro report. Every proposed method change must
+name its motivating evidence, affected skill/template/validator surface, and its method inventory entry. Optional adapters may be recorded,
+but adapter use cannot bypass native gates. If the validator is unavailable, record that limitation
+and keep the human checklist authoritative.
+
+## Generalize before promoting a method change
+
+For every proposed method change, separate incident evidence from the portable rule before
+editing the kit. Record:
+
+1. **Failure category** — the reusable class of problem, not the product or ticket name.
+2. **Domain-neutral invariant** — what must be true across implementations.
+3. **Enforcement point** — the devarm skill, template, validator, or target-repository rule that
+   will enforce it.
+4. **Applicability boundary** — when the rule applies and when it remains target-only.
+5. **Generalization check** — explain how the rule holds across at least two repository/domain
+   shapes, or record why the evidence supports only a narrower category.
+
+Choose one promotion outcome:
+
+- **Portable core** — applies across repository and domain shapes; add it to native devarm.
+- **Category-scoped** — reusable within a named class; add it to an existing gate with the
+  boundary stated explicitly.
+- **Target-only** — specific to a product, repository, framework, or workflow; keep it in the
+  target repository or domain skill.
+
+Incident identifiers, product names, and postmortem narratives are motivating evidence only. They
+must not appear in normative `skills/devarm-*/SKILL.md` instructions. Preserve that provenance in
+the changelog or retro report.
+
 ## Inputs
 
 - A session transcript (e.g. a `.jsonl` under the agent-transcripts dir) OR the current session.
@@ -76,7 +110,7 @@ resist adding a rule for every one-off.
 **Canonical home (`vhosts/devarm`):** apply all skill edits under `skills/devarm-*/SKILL.md` in the
 devarm repo (`~/vhosts/devarm` or your clone). `install.sh` symlinks those dirs into
 `~/.agents/skills`, `~/.claude/skills`, and `~/.codex/skills` — **do not copy skills into feature
-repos** (e.g. `tech-catalyst-v2/.cursor/skills/devarm-*`); Spec Kit and project pulls will diverge
+repos** (e.g. `target-repo/.cursor/skills/devarm-*`); Spec Kit and project pulls will diverge
 or overwrite. Editing the symlink target updates every tool instantly. See devarm `README.md`.
 
 ### Step 5 — Record and propose a commit

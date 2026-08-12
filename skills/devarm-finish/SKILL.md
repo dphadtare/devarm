@@ -11,6 +11,17 @@ metadata:
 
 "I'm using devarm-finish to close out this branch."
 
+## Artifact and evidence handoff contract
+
+Before acting or resuming, read the current repository rules, current artifacts, and the diff;
+current evidence takes precedence over any stale summary. Revalidate artifacts, require fresh full-suite evidence, and
+current artifact validation before presenting lifecycle choices, and record the validator output.
+Optional adapters may provide lifecycle metadata, but adapter use cannot bypass native gates.
+
+Explicit lifecycle authority remains: commit, push, merge, delete, reset, and discard are separate
+operations and require the applicable user choice. Discard requires typed discard confirmation.
+If the validator is unavailable, record that limitation and keep the human checklist authoritative.
+
 ## Step 1 — Verify fresh, before offering anything
 
 Run the project's FULL test suite (and lint/type gates) now, in this turn. If anything fails,
@@ -19,13 +30,13 @@ earlier turn does not count.
 
 **Env bleed sanity check:** if failures involve `Settings()` defaults, integration status flags,
 or dry-run toggles with no feature-code change, inspect developer `backend/.env` (or equivalent)
-leaking into tests before blaming the branch — fix or document `conftest` isolation first (spec
-022: `PR_CREATION_DRY_RUN` / Guru creds). **Fixture-path bleed:** when a mass of unrelated unit
+leaking into tests before blaming the branch — fix or document `conftest` isolation first. **Fixture-
+path bleed:** when a mass of unrelated unit
 tests fail together (publish/action/git scope) while feature-targeted tests pass, check whether
 a hardcoded mock repository path (e.g. `/tmp/repo`) **exists on disk** as an empty or stale
 directory — path sanitizers that require files to exist in the worktree will strip mocked
 allowlists and produce false reds. Confirm by reproducing on `main` or removing the stray path
-before chasing branch regressions. *Session evidence (spec 032): empty `/tmp/repo` caused 35
+before chasing branch regressions. *Failure-class rationale (a prior failure): empty `/tmp/repo` caused 35
 failures across publish/action tests; all green after removal + conftest cleanup fixture.* If
 optional deps block part of the suite (e.g.
 `tree_sitter_python`), state the exclusion explicitly in the verification report; do not treat
@@ -44,8 +55,8 @@ from `backend/`) — a feature-targeted subset is not sufficient for PR/merge, (
 parity:** no feature wiring remains unstaged while new modules are staged — run
 `git diff --name-only` and `git diff --cached --name-only`; every importer of a staged module
 (`unified.py`, workflow glue, skill cross-refs, `conftest` fixes) must appear in the index.
-*Session evidence (spec 032): `nr_link_intake.py` staged but `unified.py` /
-`remediation_workflow.py` unstaged at finish; spec 027: core modules untracked at PR time.*
+*Failure-class rationale (a prior failure): `nr_link_intake.py` staged but `unified.py` /
+`remediation_workflow.py` unstaged at finish; a prior failure: core modules untracked at PR time.*
 
 ## Step 2 — Determine the base branch
 

@@ -2,12 +2,22 @@
 
 **Document type:** Design spec (devarm-brainstorm output)
 **Date:** YYYY-MM-DD
-**Status:** Draft — pending grounding (devarm-ground) and user approval
+**Status:** draft
+**Phase:** design
+**Feature/change:** <feature or change name>
 **Track:** standard | quick
-**Pipeline:** brainstorm ▶ ground ☐ spec ☐ plan ☐ tasks ☐ analyze ☐ implement ☐ review ☐ finish ☐
+**Pipeline:** brainstorm ▶ ground ☐ spec ☐ clarify ☐ plan ☐ tasks ☐ analyze ☐ implement ☐ review ☐ finish ☐
 <!-- Update the Pipeline line at each phase gate (▶ = in progress, ☑ = passed). It is how a
 fresh session knows exactly where this feature stands — keep it true. -->
 **Last session note:** <one line: where work stopped, what's next>
+**Last verification:** <date and command, or N/A before verification>
+**Open assumptions / risks:** <none or explicit risks>
+**Next gate:** <next phase or decision>
+**Target repository:** <absolute repository path>
+**Target branch:** <branch>
+**Related artifacts:** <links>
+**Rule inventory:** <canonical inventory link or section>
+**Analysis:** <analysis/findings artifact link>
 
 **Builds on / related:** <links to prior designs, specs, or landed work this must respect>
 
@@ -62,6 +72,11 @@ fresh session knows exactly where this feature stands — keep it true. -->
 ---
 
 <!-- The two sections below are filled by devarm-ground BEFORE approval. -->
+
+## Repository Rule Inventory
+
+See `devarm/templates/rule-inventory.md`. Grounding records the applicable target-repository
+instructions and conflict/disposition evidence here before design approval.
 
 ## Detailed Design (grounded)
 

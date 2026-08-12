@@ -3,6 +3,19 @@
 Every entry records a method change and the session/failure that motivated it. Maintained by
 `devarm-retro` — a lesson is only "done" when it's a gate in the method, not just a note.
 
+## 2026-08-13 — portable retro promotion and normative-skill audit
+
+Motivated by the review of TC-derived devarm evolution: incident evidence was repeatedly embedded
+in normative skills as `Session evidence`, ticket/spec references, and product-specific narratives.
+The method change adds a retro generalization gate requiring a failure category, domain-neutral
+invariant, enforcement point, applicability boundary, and a two-shape generalization check. New
+promotions must be classified as portable core, category-scoped, or target-only.
+
+The normative `skills/devarm-*/SKILL.md` files were audited and their incident provenance was
+removed or generalized while historical changelog evidence was preserved. Contract tests now
+reject incident markers in normative skills. No runtime, persistence, or external-service behavior
+changed.
+
 ## 2026-08-08 — spec 033 fix-loop worktree merge seed retro (DEV-323494 / PR #124)
 
 Motivated by DEV-323494 postmortem → brainstorm → ground → spec/plan/tasks/analyze →
