@@ -11,6 +11,21 @@ metadata:
 
 "I'm using devarm-brainstorm to turn this idea into a grounded, approved design."
 
+## Artifact and rule handoff contract
+
+Before acting, record the active repository and branch in the artifact metadata. Discover
+applicable target-repository instructions and link the canonical rule inventory; the
+target-repository rule wins over a devarm default, and material conflicts require a visible
+disposition. Run the optional validator; if it is unavailable, record the limitation and keep
+the manual checklist authoritative. The optional validator is not required for the native method.
+A deterministic blocking error stops the handoff; warnings remain visible and do not imply
+approval. Preserve explicit approval gates and mark an unanswered decision `assumed — awaiting
+confirmation`. If a settled decision is superseded, ripple-check dependent artifacts and re-check
+the affected evidence before continuing.
+
+The quick track means at most 3 changed files. any persistence change or any contract change
+upgrades the work to the standard track.
+
 ## Hard gate
 
 Do NOT write code, scaffold, or invoke any implementation skill for consequential code/product
@@ -24,6 +39,19 @@ visualization artifacts unless the user explicitly asks for devarm or the work c
 behavior, architecture, or the devarm method itself. If applicability is ambiguous, ask whether
 to use devarm instead of invoking it by default.
 
+**Review vs design:** `/findgap` and similar **external** code-review commands are for
+**implemented diffs** — native equivalent is `devarm-review`. During brainstorm/design turns,
+answer product and architecture questions directly; do not treat every user message with a findgap
+attachment as a request to audit non-existent code. *Failure-class rationale (a prior failure): findgap was
+attached to ~10 design Q&A turns before implementation started.*
+
+**Preserve existing capability:** when the user cites an existing tool, service, MCP wiring, or
+skill ("we already have X", "confirm ground reality", "don't change X wiring"), **stop proposing
+replacements** until `devarm-ground` records a **`PRESERVE`** row in the Reuse Inventory with
+live-path evidence (`file:line`). New work must state how it coexists without replacing the
+preserved path. *Failure-class rationale (a prior failure): LLM NR MCP tools preserved; server-side link
+intake added as parallel scoped path — D1/D5/D10.*
+
 ## Checklist (create a task per item, complete in order)
 
 1. **Explore project context.** Read the relevant files, docs, and recent commits. In an
@@ -34,9 +62,10 @@ to use devarm instead of invoking it by default.
 2. **Scope check.** If the idea spans multiple independent subsystems, stop and help decompose
    it into sub-projects first — each gets its own design → spec → plan → implement cycle. Don't
    refine details of something that should be split.
-2b. **Scale gate.** Classify the work and recommend a track (user confirms):
-   - **Quick track** — bug fix or single-story change with a small blast radius (roughly ≤3
-     files, no new persistence, no contract changes). The GATES stay, the ARTIFACTS collapse:
+2b. **Scale gate.** Classify the work and recommend a track (user confirms). The scale gate
+produces a recommended track classification before user confirmation:
+   - **Quick track** — bug fix or single-story change with a small blast radius (at most 3
+     changed files, no persistence change, no contract change). The GATES stay, the ARTIFACTS collapse:
      one short doc holds a few-sentence design, a scoped grounding pass (the touched seams +
      whichever of the 10 categories apply), and a mini task list; skip separate spec/plan/
      analyze docs. Before implement, run the scoped analyze equivalent in that same doc:
@@ -48,6 +77,28 @@ to use devarm instead of invoking it by default.
    - **Standard track** — everything else: the full pipeline below.
    Never skip grounding, user approval, the pre-implementation decision batch, TDD, or
    verification on any track — scale trims paperwork, not gates.
+2c. **Existing-path delta checkpoint (standard-track speed):** when changing behavior or a
+   contract in an existing repository, inspect at most **five** high-value surfaces before opening
+   design alternatives: the current producer, current consumer, prompt/contract boundary,
+   persistence or audit boundary, and the most relevant tests. Present a compact table with
+   `existing behavior | actual gap | proposed delta | out of scope`. Do not design a new memory,
+   service, phase, or store until the table shows that the existing path cannot carry the goal.
+   If more than five surfaces are necessary, state why before expanding the inventory. This
+   checkpoint is evidence gathering, not a user approval gate, and prevents re-discovering an
+   existing capability during later planning. When the change crosses a phase/process boundary
+   or touches **three or more** of those surfaces, include two compact visuals in the design:
+   (a) an **as-is** map of the existing producer, consumer, state/gate, and external boundary;
+   (b) a **to-be** map or delta overlay showing only the proposed additions/removals and data flow.
+   Ground the as-is nodes and edges with `file:line` evidence; a conceptual diagram without
+   current-code evidence is not a system map. A one-surface local change may record `diagram: N/A`
+   with the reason.
+2d. **Pipeline execution mode:** ask once whether the user wants **guided mode** (halt at each
+   phase gate) or **batch-approved mode** (after grounded design approval, automatically run the
+   non-approval phases through analyze). Recommend batch-approved when the user says “continue”,
+   “end-to-end”, or repeatedly accepts routine recommendations. Batch-approved mode still stops
+   for design approval, owner-user design decisions, analyze Pass 3 decisions, failing tests, and
+   verification failures; it only removes repetitive phase-transition turns. Silence never opts
+   into it.
 3. **Ask clarifying questions — one at a time.** Prefer multiple-choice with a recommended
    option first. One question per message; break big topics into several. Work through the
    Question Coverage Map below — every area answered or explicitly marked N/A/deferred before
@@ -56,16 +107,32 @@ to use devarm instead of invoking it by default.
 5. **Present the design in sections** scaled to complexity (a few sentences for simple parts,
    up to ~250 words for nuanced ones). Cover: architecture, components, data flow, error
    handling, testing. Ask after each section whether it looks right. Revise as needed.
+   **Architecture diagram gate (required before concluding a multi-component / multi-pod /
+   multi-process section, and again before the approval ask):** show at least one mermaid
+   (or equivalent) diagram of the proposed shape — boxes for components/pods, arrows for
+   claim/lease/schedule/fail paths — *before* asking "does this look right?" or moving to the
+   next problem. Prose-only architecture is not enough when the user must choose among
+   deployments, leaders, or ownership models. *Failure-class rationale (a prior failure): user had to ask
+   twice ("show me design in the diagram formats" / "show me design… in diagram representation")
+   before Problem A and Problem B approvals.*
 6. **Write the draft design doc** to `docs/design/YYYY-MM-DD-<topic>-design.md` (or the target
    repo's configured design location, e.g. `docs/superpowers/specs/`). Use
-   `devarm/templates/design-doc.md` as the structure.
+   `devarm/templates/design-doc.md` as the structure. Include the mermaid diagram(s) from step 5
+   in the doc so approval is against the same visual, not conversation memory.
 7. **Spec self-review** (inline): scan for placeholders/TBDs, internal contradictions, scope
    creep, and requirements that could be read two ways. Fix inline.
 8. **Run devarm-ground** on the draft — BEFORE asking for approval. Grounding may send you back
    to revise sections 4-6; that is expected and is the point.
 9. **User approval gate.** Only after grounding passes, ask the user to approve the written,
    grounded design. If they request changes, revise and re-ground.
-10. **Phase gate / handoff.** Report the design path, grounding result, approval state, and
+10. **Method inventory (on user request OR at design-lock before handoff).** Table what ran this
+    session and what it produced — native devarm phases, optional external adapters (if any), and
+    domain/project skills (e.g. ticket postmortem). Columns: `Item | Native/external | Used? |
+    Artifact/output | Reuse next time`. When the user says they will adopt an external pattern
+    into devarm, note it for `devarm-retro` — do not leave adoption intent only in chat.
+    *Failure-class rationale (a prior failure): user asked "what tools/skills did we use?" and planned to adopt
+    Superpowers skill-check into devarm — now native in `AGENTS.md` invocation preamble.*
+11. **Phase gate / handoff.** Report the design path, grounding result, approval state, and
     recommended next phase (`devarm-spec`). By default, STOP and ask the user whether to run
     `devarm-spec`. Invoke `devarm-spec` only if the user explicitly requested end-to-end
     execution for this work or has just told you to continue. Do not treat silence as approval
@@ -96,10 +163,27 @@ each answer becomes a candidate Decision Ledger row so it can't be re-litigated 
   `**Recommended:** <option> — <1-2 line reason>` above the options and tell the user a plain
   "yes" accepts it. Prioritize remaining questions by impact × uncertainty — never spend two
   low-impact questions while a high-impact area is unresolved.
+- **Decision batch trigger (≥3 routine choices or two consecutive accepts).** When locking a list
+  of three or more action dispositions (review remedies, challenged-finding approaches, "items
+  that require action"), or when the user accepts two consecutive routine recommendations,
+  present the **full remaining batch** with Recommended on each row and `Reply "accept all
+  recommended" (or override by ID)` — same shape as `devarm-analyze` Pass 3. Do **not** burn one
+  turn per item asking "recommended?"; sequential deep-dives are optional after the batch is on
+  the table, not a substitute for it. Keep one-at-a-time questioning only for a conceptual
+  misunderstanding or a genuinely new fork. *Failure-class rationale: a prior session spent
+  seven consecutive "recommended" turns locking routine choices one at a time.*
+- **Confusion / decide stop.** If the user says they don't understand, asks to elaborate, or
+  asks "help me decide / help me understand X", **stop the recommendation loop**. Re-explain
+  the contested point in plain language (with a small diagram when the confusion is about
+  topology or ownership), then ask one focused question — do not pile the next Recommended
+  choice on top of unresolved confusion. *Failure-class rationale (a prior failure): "I am not getting the
+  problem…", "Help me decide what is good fit", "Help me understand scheduler Deployment
+  replicaCount: 1" arrived mid-Q loop; continuing with more options without re-grounding the
+  mental model wastes turns.*
 - **Follow the fork.** If an answer opens a new decision (an answer like "sequential is fine,
-  but the fallback needs expansion" contains 2-3 embedded decisions), play back your
-  restatement of what they decided and ask the next question the answer created — don't move
-  on with your own interpretation.
+   but the fallback needs expansion" contains 2-3 embedded decisions), play back your
+   restatement of what they decided and ask the next question the answer created — don't move
+   on with your own interpretation.
 - **Unanswered ≠ answered.** If the user skips a question, it does NOT default — carry it
   forward as `assumed — awaiting confirmation` and re-surface it at the approval gate.
 - **Stop condition:** questioning is done when every map area is answered/N/A **and** the last

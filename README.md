@@ -1,6 +1,6 @@
 # devarm
 
-**Your own, portable development method** — brainstorm → ground → spec → plan → tasks →
+**Your own, portable development method** — brainstorm → ground → spec → clarify → plan → tasks →
 implement → review — expressed as [Agent Skills](https://agents.md) that run unchanged in
 **Cursor, OpenAI Codex, GitHub Copilot, and Claude Code**.
 
@@ -43,13 +43,14 @@ sees them. Restart / reopen your agent tool afterward so it re-scans skill direc
 | 1 | Brainstorm | `devarm-brainstorm` | draft `design.md` | sections approved |
 | 2 | **Ground** | `devarm-ground` | Detailed Design + Decision Ledger | every reuse verified with `file:line` |
 | 3 | Specify | `devarm-spec` | `spec.md` | quality checklist passes |
-| 4 | Plan | `devarm-plan` | `plan.md` + file map | every requirement → a task, no placeholders |
-| 5 | Tasks | `devarm-tasks` | `tasks.md` | failing-test task before each impl |
-| 6 | **Analyze** | `devarm-analyze` | findings report + batch-decided implementation decisions | artifacts consistent AND re-verified vs current code; flagship traced; implementation decisions batch-decided |
-| 7 | Implement | `devarm-implement` | code + green tests | verified before "done" |
-| 8 | Review | `devarm-review` | review notes + findings ledger | architecture + QA lens |
-| 9 | Finish | `devarm-finish` | merge / PR / keep / discard | fresh suite green; typed confirm to discard |
-| 10 | Retro | `devarm-retro` | proposed edits + suggested commit summary (+ `CHANGELOG.md`) | method improved from the session |
+| 4 | Clarify | `devarm-clarify` | `spec.md` Clarifications | material ambiguities resolved or risk logged |
+| 5 | Plan | `devarm-plan` | `plan.md` + file map | every requirement → a task, no placeholders |
+| 6 | Tasks | `devarm-tasks` | `tasks.md` | failing-test task before each impl |
+| 7 | **Analyze** | `devarm-analyze` | `analysis.md` + batch-decided implementation decisions | artifacts consistent AND re-verified vs current code; flagship traced; implementation decisions batch-decided |
+| 8 | Implement | `devarm-implement` | code + green tests | verified before "done" |
+| 9 | Review | `devarm-review` | review notes + findings ledger | architecture + QA lens |
+| 10 | Finish | `devarm-finish` | merge / PR / keep / discard | fresh suite green; typed confirm to discard |
+| 11 | Retro | `devarm-retro` | proposed edits + suggested commit summary (+ `CHANGELOG.md`) | method improved from the session |
 | — | Debug | `devarm-debug` (on-demand, any phase) | root cause + failing test + one fix | no fix without root cause |
 | — | TDD | `devarm-tdd` (core discipline) | test seen to fail first | code-before-test gets deleted |
 
@@ -57,7 +58,9 @@ Three phases make devarm more than a spec/plan flow:
 
 - **Ground** (step 2) runs *inside* brainstorming, before approval, and blocks it until no
   "reuse/wrap/extend existing X" claim survives unverified. See `skills/devarm-ground/SKILL.md`.
-- **Analyze** (step 6) ends with an interactive implementation-decision brainstorm: the control
+- **Clarify** (step 4) resolves up to five material ambiguities in `spec.md` before planning. See
+  `skills/devarm-clarify/SKILL.md`.
+- **Analyze** (step 7) ends with an interactive implementation-decision brainstorm: the control
   flow is walked with you and every foreseeable implementation decision is batch-decided before
   any code. See `skills/devarm-analyze/SKILL.md`.
 - **Retro** (step 10) turns each session's lessons into proposed edits to devarm itself — the
@@ -106,8 +109,24 @@ user approval, design-level decisions, unresolved ledger assumptions, and a fail
 
 devarm is **additive** — it doesn't replace your other tools. If a target repo has a `.specify/`
 (spec-kit) directory, `devarm-spec/plan/tasks` reuse its templates and `constitution.md`.
-Otherwise they fall back to `templates/`. devarm supplies the *method*; the project supplies the
+Otherwise they use the fallback templates in `templates/`. devarm supplies the *method*; the project supplies the
 *rules* — a project's own constitution / `.cursor/rules` / `AGENTS.md` always wins.
+
+## Artifact, rule, and adapter contract
+
+The native pipeline writes repository-local Markdown artifacts with common artifact metadata:
+repository, branch, status, phase, pipeline, last verification, risks, next gate, and related
+artifacts. The design owns one canonical rule inventory. The target-repository rule wins over a
+devarm default; conflicts receive a visible disposition. An optional validator is a read-only
+standard-library check: validator errors block a handoff, warnings remain visible, and human judgment plus
+approval gates stay authoritative. The installer does not distribute or require a validator — the
+validator is not installed as a skill, service, database, or required CLI. No required CLI, service, or database is needed for the native method.
+
+Adapter-present work records the adapter, its output, and reuse value in the method inventory.
+Adapter-absent work keeps the same native gates. Source rules are explicitly classified as Adopt,
+Adapt, or Target-only; target-project-specific rules remain with the target repository. Partial,
+failed, and blocked artifacts remain resumable only after current evidence and the diff are
+revalidated. Retro proposals require motivating evidence and verification evidence.
 
 ## Layout
 
@@ -120,13 +139,14 @@ devarm/
 │   ├── devarm-brainstorm/SKILL.md
 │   ├── devarm-ground/SKILL.md
 │   ├── devarm-spec/SKILL.md
+│   ├── devarm-clarify/SKILL.md
 │   ├── devarm-plan/SKILL.md
 │   ├── devarm-tasks/SKILL.md
 │   ├── devarm-analyze/SKILL.md
 │   ├── devarm-implement/SKILL.md
 │   ├── devarm-review/SKILL.md
 │   └── devarm-retro/SKILL.md
-├── templates/            # design-doc, decision-ledger, config-decision, findings-ledger, constitution
+├── templates/            # artifact metadata, rule inventory, phase docs, and decision/findings templates
 └── CHANGELOG.md          # every method change + the failure that motivated it (kept by devarm-retro)
 ```
 

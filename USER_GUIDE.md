@@ -68,9 +68,10 @@ the artifact or result, and asks whether to continue.
 | Brainstorm | The agent asks focused questions and proposes approaches. | Answer trade-off and scope questions. |
 | Ground | The agent verifies reuse claims against real files with `file:line` evidence. | Approve or reject the grounded design. |
 | Spec | The agent writes testable WHAT/WHY requirements. | Check that the behavior is right. |
+| Clarify | The agent asks up to five material ambiguity questions and records the answers in `spec.md`. | Resolve or explicitly defer remaining ambiguity. |
 | Plan | The agent maps files, seams, and implementation steps. | Check for obvious wrong assumptions. |
 | Tasks | The agent creates ordered, tests-first tasks. | Confirm scope still matches. |
-| Analyze | The agent re-checks artifacts against current code, then walks the control flow with you and batch-presents every remaining implementation decision with recommendations. | Resolve blocking findings, confirm the flows, and answer the decision batch (a plain "yes" accepts the recommendations). |
+| Analyze | The agent re-checks artifacts against current code, persists `analysis.md`, then walks the control flow with you and batch-presents every remaining implementation decision with recommendations. | Resolve blocking findings, confirm the flows, and answer the decision batch (a plain "yes" accepts the recommendations). |
 | Implement | The agent works task by task with TDD and verification; trade-offs it logs are batched at checkpoints. | Answer design-level decisions only. |
 | Review | The agent reviews against the design and repo principles. | Decide whether findings must be fixed. |
 | Finish | The agent verifies fresh and offers merge, PR, keep branch, or discard. | Pick the finish action. |
@@ -138,10 +139,24 @@ devarm creates planning artifacts in the target repo. Common paths are:
 - `docs/specs/<topic>/spec.md`
 - `docs/specs/<topic>/plan.md`
 - `docs/specs/<topic>/tasks.md`
-- a findings ledger or review notes during analyze/review
+- `docs/specs/<topic>/analysis.md`
+- a findings ledger or review notes during review
 
 If the target repo has `.specify/`, devarm reuses that repo's spec-kit templates and layout
 instead.
+
+## Portable artifact and adapter rules
+
+Each repository-local artifact records common metadata (repository, branch, status, phase, pipeline,
+verification, risks, next gate, and related artifacts) and links the design's canonical rule
+inventory. The target-repository rule wins over a devarm default. The optional validator is a
+standard-library check that reports blocking errors or visible warnings; it does not replace human judgment or an
+approval gate. Partial, failed, and blocked work is preserved and must be revalidated before resume.
+
+For the adapter-present path, record the adapter in the method inventory with its output and reuse
+value. For the adapter-absent path, the same native gates still run. Source rules use Adopt, Adapt, or Target-only
+dispositions, so target-project-specific guidance does not leak into the portable core. Retro
+proposals cite motivating evidence and verification evidence.
 
 ## 6. How to work with it
 

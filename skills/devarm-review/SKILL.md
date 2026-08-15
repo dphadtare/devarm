@@ -2,7 +2,7 @@
 name: "devarm-review"
 description: "Use when a major step completes or before merge, to review the work against the grounded design, the Decision Ledger, and the repo's principles. Applies an architecture lens and a QA lens (the useful, transferable part of persona-based methods) without a heavyweight persona framework. Produces prioritized, actionable review notes."
 metadata:
-  phase: 8
+  phase: 9
   produces: "prioritized review notes (blocking / should-fix / nit)"
   next: "devarm-implement (to address) or devarm-finish (to integrate)"
 ---
@@ -10,6 +10,15 @@ metadata:
 ## Announce
 
 "I'm using devarm-review to review this work against the grounded design and the repo's rules."
+
+## Artifact and evidence handoff contract
+
+Before acting or resuming, read the current repository rules, current artifacts, and the diff;
+current evidence takes precedence over any stale summary. Revalidate artifacts and record the
+canonical rule inventory and validator output in the findings ledger. For each behavioral claim,
+identify whether the test reaches a real seam; a mocked seam is an explicit limitation, not proof
+of the unmocked path. Optional adapters may provide review inputs, but adapter use cannot bypass
+native gates. Preserve the risk-based quality coverage and record accepted limitations explicitly.
 
 ## Inputs
 
@@ -38,10 +47,24 @@ metadata:
   prompt — primary vs expansion/variant. A directive true on one path can contradict an
   authoritative block in the same prompt on another (a real bug in a past session: a "single
   linked repository" directive fired on a pinned expansion pass that carried a multi-repo plan).
+- **Cross-section pairing (skill/prompt-only):** when the diff touches multiple sections of the
+  same runtime artifact, list every **section pair** checked (e.g. Finding Severity ↔ Phase 1e,
+  new Phase 1c item ↔ existing Phase 1b item) and record pass/fail in the findings ledger or
+  polish task — a read scoped to "the sections we added" misses contradictions in sections we
+  only referenced. *Failure-class rationale: T026 read Hard Rules + Phase 1c 7-10 only; G1 (floor vs
+  Phase 1e) escaped until findgap.*
 
 ### QA lens
 - **Test coverage of behavior** (not just lines): does each spec requirement have a test? Are
   failure modes, edge cases, empty/single/disabled paths, and idempotency/replay tested?
+- **Mock-boundary / inert-feature audit:** for each behavioral success criterion, state whether its
+  covering test exercises the **real seam** or mocks it out. An SC whose only test mocks the exact
+  seam it asserts is **not covered** — green there is false confidence. Require at least one test per
+  behavioral SC that runs the unmocked path (real-git fixture, in-process wiring, or a live smoke),
+  or mark completion **provisional pending a live run**. *Failure-class rationale: a prior failure's flagship test
+  mocked `run_action_phases`, so a completely unwired reconciliation (dropped field, unrendered
+  prompt, scope-stripped deletion) passed green and was approved — only live E2E exposed it; a prior failure
+  repeated the shape (74 mocked `_run_git` tests green, live E2E failed).*
 - **Determinism:** are ordering/tiebreak rules actually enforced and tested?
 - **Verification evidence:** were tests/lints/types actually run green? Ask for the output if not
   shown. Re-derive "done" from the repo itself (grep for the named test / read the file), never
@@ -76,13 +99,19 @@ session each was wrong once about the same `SKILL.md` issue). Evidence, not auth
 
 **Challenge before fix-all.** When the findings ledger has multiple HIGH/Should-fix items — or
 after an external `/findgap` pass — pressure-test each against grounded design, Decision Ledger
-rows, and real consumers before implementing all of them. Overreach (spec 022: SC-005 "missing
+rows, and real consumers before implementing all of them. Overreach (a prior failure: SC-005 "missing
 render" while `possible_causes` + `best_repo_evidence` already surfaced) wastes a fix cycle;
 defer or downgrade items that contradict locked decisions or grounded design.
 
 **Check every finding against the Decision Ledger first.** A finding that contradicts a recorded
 `owner: user` decision is `by-design`, not a bug, unless the user explicitly reopens it — this
 stops reviews from re-litigating settled decisions (a real source of churn in a past session).
+Also check **status language**: rows marked `deferred for this PR`, `deploy-gate`,
+`out-of-scope`, or `follow-up` must land in **Defer / optional** (or ops cutover gates), never
+**Required for merge**, even when a later `/findgap` re-labels them High. *Failure-class rationale
+(a prior failure + 026 hardening): findgap re-ranked ledger-deferred residuals (zombie-cancel; Git
+401 remint; R2 URL-inject; Helm encoding) as top-5 merge urgency until challenge restored the
+ledger split.*
 
 ## Receiving feedback (when you are the implementer working the ledger)
 
@@ -98,13 +127,39 @@ stops reviews from re-litigating settled decisions (a real source of churn in a 
   context, or contradicts a ledger decision — and if your pushback turns out wrong, state the
   correction factually ("verified — you're correct because X; fixing") and move on. No
   apologies, no defending.
+- **Design-deviation guard (fires at fix time, not review time).** Before applying a finding whose
+  fix would *change* an agreed design decision or a locked Decision Ledger row — not merely
+  implement it — STOP and consult the user first; that remediation is itself a design-level
+  decision. Supersede the ledger row explicitly (with a ripple-check of its consumers); never
+  smuggle a redesign into a "fix". This is distinct from the reviewer-side "check findings against
+  the ledger" rule above — that screens findings; this screens the *fixes* you apply to them.
+
+## Code-grounded spec reconcile (native clarify)
+
+When the user asks a verification question during review ("will X URL/host work?", "is behavior
+Y implemented?"), invoke **`devarm-clarify` code-grounded mode** — not pre-plan question loops:
+
+1. Answer from implementation evidence (`file:line`) first.
+2. Update `spec.md` Clarifications + FR/edge cases if the spec was silent or wrong.
+3. If code contradicts a locked ledger row, flag as defect — do not silently edit the ledger.
+
+External `/speckit-clarify` may be used only when `.specify/` exists **and** feature-dir sanity
+passes; native `devarm-clarify` is sufficient. *Failure-class rationale (a prior failure): post-implement
+`a provider host` question updated FR-001/FR-002 after code verification.*
 
 ## End every review turn with an explicit state split
 
-Close each turn with two labeled lists so "fix the issues found" is never ambiguous:
+Close each turn with three labeled lists so "fix the issues found" is never ambiguous:
 
 - **Already fixed this turn** — with the commit if explicitly authorized, otherwise with the
   diff/checkpoint evidence.
-- **Awaiting your decision** — findings that need the user's call before action.
+- **Required for merge** — defects/CI holes that block ship. Implement these next unless the
+  user says otherwise.
+- **Defer / optional** — by-design residuals, coverage nits, ledger-accepted risks, polish.
+  Do **not** implement these on a bare "fix the findings" — wait for an explicit include, or
+  the user's "fix required / ignore the rest" split. *Failure-class rationale (a prior failure): findgap
+  repeatedly re-ranked zombie-cancel / renew-loop / strip-on-reuse as top-5; challenge +
+  required-only fix closed the real blockers (soft-delete collateral, migration dual-head) without
+  expanding scope.*
 
 (Ambiguity here caused duplicate "fix it" turns on already-applied fixes in a past session.)

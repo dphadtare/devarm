@@ -2,7 +2,7 @@
 name: "devarm-analyze"
 description: "Use after devarm-tasks and BEFORE devarm-implement — a mandatory gate with three passes: (1) cross-artifact consistency (design ↔ spec ↔ plan ↔ tasks ↔ Decision Ledger), (2) architecture-vs-codebase verification that re-checks every integration claim against the CURRENT code, since the repo may have moved since grounding, and (3) an interactive implementation-decision brainstorm — a control-flow walkthrough with the user that batch-decides every foreseeable implementation decision before any code. Also traces the flagship user story end-to-end on paper. Blocks implementation until CRITICAL/HIGH findings are resolved and Pass 3 decisions are recorded. Also usable as a scoped re-gate after course corrections or large fix batches. By default, halt after the analyze report and ask whether to run devarm-implement; continue automatically only when the user explicitly requested end-to-end execution."
 metadata:
-  phase: 6
+  phase: 7
   produces: "analysis report (severity-ranked findings) + batch-decided implementation decisions in the ledger; implementation blocked until CRITICAL/HIGH resolved"
   next: "halt and ask about devarm-implement once clean unless end-to-end was explicitly requested"
 ---
@@ -24,6 +24,16 @@ decisions into one interactive sitting before implementation starts.
 ## Announce
 
 "I'm using devarm-analyze to gate the artifacts against each other and against the current code."
+
+## Artifact and evidence handoff contract
+
+Before acting or resuming, read the current repository rules, current artifacts, and the diff;
+current evidence takes precedence over any stale summary. Validate all loaded artifacts before Pass 1
+and record the validator output in `analysis.md`. Revalidate artifacts again after any course
+correction. Optional adapters may provide inputs, but adapter use cannot bypass native gates.
+
+If the validator is unavailable, record that limitation and keep the human checklist authoritative.
+Deterministic errors block the handoff; warnings remain visible and do not imply approval.
 
 ## Pass 1 — Cross-artifact consistency (read-only)
 
@@ -54,6 +64,54 @@ CURRENT working tree:
   case itself. (This is the check that catches "the evidence rule rejects our headline use case".)
 - **Runtime contracts:** every contract change in the plan has its paired prompt/SKILL update
   task, and the current runtime files match what the plan assumes they say.
+- **Cross-section contradiction sweep (skill/prompt-only, required when ≥2 sections of the same
+  runtime artifact change):** Wording-lock tests prove a substring exists; they do **not** prove
+  sections agree. Enumerate every section touched AND every section those sections reference;
+  for each pair, trace at least one realistic population where both apply (empty list, anchorless
+  entry, test-file path, deferral/waiver path, sibling-deferred path). Include **workflow-order
+  pairs** — an earlier section whose SUCCESS/FAIL gate runs before a later qualified section
+  (e.g. Phase 1 item 6 before Phase 1b item 5) — not only same-heading pairs. If a new rule could
+  contradict an existing one on that population, it is a **HIGH** finding unless the plan/tasks
+  include either (a) an explicit carve-out in the new text, or (b) a routing characterization
+  test that executes the ship-gate predicate before/after. *Failure-class rationale (026 semantic
+  minimality): item 10 blocked all runs with zero expectations (F1); correctness floor
+  contradicted Phase 1e test-file severity (G1) — both passed all wording-lock tests. a prior failure:
+  Phase 1 "Missing tests" unqualified while Phase 1b was qualified — findgap/challenge caught
+  after analyze/review; wording-lock green throughout.*
+- **New repository-local skill contract (when plan adds `backend/repository-local/skills/<name>/`):** verify
+  tasks cover untrusted-input guard, producing vs reference-only classification, and a run of
+  the repo skill-content test module — not only feature-specific wording-lock tests.
+- **Settings/config patch targets (when plan/tasks patch settings):** open the production
+  import(s) the code under test uses. If settings are imported locally or from `backend.config`,
+  confirm the planned `patch("…")` string resolves to that object — a HIGH finding if the plan
+  patches a module attribute that does not exist / is never read (silent no-op). *Session
+  evidence (026 hardening): `patch("…application settings binding")` was a no-op against a local
+  `from backend.config import settings`.*
+- **Continue-path side-effect audit (required when the plan touches a re-entrant loop with
+  retry-specific behavior):** for each cited `continue` / early `return` inside the loop body,
+  list side-effects that MUST run before the next iteration (counter increments, feedback
+  assignment, `last_applied_*` updates). Flag any path where the loop restarts code-fix (or
+  equivalent) without the increment that the merge/prompt gate expects — **HIGH** unless
+  explicitly deferred in the Decision Ledger with an enforcing negative test. Re-check that
+  merge seed, prompt gating, and discard allowlist all read the **same** repair-retry signal
+  (or document the intentional split). *Failure-class rationale (a prior failure): analyze Pass 3 walked
+  validation/review retry but not pre-validation coverage `continue`; findgap caught it
+  post-ship.*
+
+- **Cross-channel trigger/timing matrix (required when the feature has two or more
+  intake/trigger channels, or an external poller/webhook can requeue or wake an entity):**
+  add a matrix covering the trigger source, entity lifecycle state, and timing of the event.
+  At minimum walk the event (a) before a run starts, (b) during an active run, (c) after a
+  manual/operator rerun or update, and (d) after the entity reaches a terminal status while
+  the external source remains live. For every cell, record the owning module, whether work is
+  reused/rejected/deferred/created, and the side effects for pending work, acknowledgement,
+  watermark/cursor, claim/lease, and terminal status. State the precedence when two channels
+  race. A terminal status must not suppress live external work unless that suppression is an
+  explicit locked decision. Any status-based source-eligibility choice (for example, whether a
+  closed or terminal source remains pollable) is an `owner: user` decision: present the
+  recommendation and alternatives in Pass 3 and record the answer in the Decision Ledger; do
+  not infer it silently from existing code or runtime behavior. This is a category-scoped gate
+  for multi-actor/re-entrant workflows, not a requirement for single-trigger features.
 
 ## Pass 3 — Implementation-decision brainstorm (interactive, with the user)
 
@@ -63,8 +121,20 @@ resolved), in this order:
 1. **Control-flow walkthrough.** Narrate the functional/control flow of the flagship scenario
    AND each major failure/edge path through the planned components, as short numbered flows the
    user can read and object to ("A receives X → validates via B → on failure does C…"). Pause
-   after each flow for confirmation. An objection is a reopened decision → handle via
-   `devarm-brainstorm`'s back-and-forth protocol (supersede + ripple-check), not an inline patch.
+   after each flow for confirmation. **If the plan has a State-Transition Table (re-entrant /
+   multi-actor state machine), walk it cell by cell** — for every `(state × event)` trace to its
+   terminal state and assert the required cells are non-schedulable / preserving (no loop, no
+   downgrade, no unintended close/reset) with the right side-effects and owning module. A missing
+   or hand-waved cell is a HIGH finding, not a coding-time detail. *Why: this session's fix tail
+   was almost entirely unenumerated state-transition cells (F1/F3/F6/L1/R2→R3) that a narrative-only
+   walkthrough let through.* **Shared policy matrix (required when centralizing
+   create/requeue/claim across channels):** for each active status × each channel, state the
+   operator-visible outcome (reuse / supersede / reject / create) and whether the ticket can
+   become stuck or lose resume. Walking only the idle/queued happy path ships wrong pause
+   semantics. *Failure-class rationale (a prior failure): D2 initially reused `waiting state`; operators
+   could not requeue — superseded mid-flight after review (R-01).* An objection is a reopened
+   decision → handle via `devarm-brainstorm`'s back-and-forth protocol (supersede + ripple-check),
+   not an inline patch.
 2. **Enumerate the foreseeable implementation decisions.** Collect into one list: (a) every
    ledger row still `assumed — awaiting confirmation` or `owner: user` and undecided; (b) every
    implementation trade-off visible from the plan/tasks (module placement, error-handling
@@ -74,7 +144,12 @@ resolved), in this order:
    `**Recommended:** <option> — <1-2 line reason>`; tell the user a plain "yes" accepts all
    recommendations, or they can override per item. List `owner: user` design-level items FIRST
    and under their own heading, separate from routine trade-offs, so a batch "yes" never buries
-   an intent-level decision. Record every answer as a Decision Ledger row.
+   an intent-level decision. For each `owner: user` **deploy-gate** / ops residual (secret
+   encoding, ExternalSecret shape, live smoke), add one plain sentence: **blocks env cutover,
+   not code merge** (or the inverse if it truly blocks merge) — so "yes" does not leave the
+   user unclear why the item is still open. *Failure-class rationale (026 hardening): user had to ask
+   separately to understand FG-03 / R3 `b64dec` after analyze clean.* Record every answer as a
+   Decision Ledger row.
 4. **Exit criterion.** The target is that `devarm-implement` asks the user near-zero questions:
    only genuine design-level surprises may interrupt coding. A foreseeable trade-off that still
    surfaces mid-implementation is a Pass-3 miss — `devarm-implement` logs it for `devarm-retro`.

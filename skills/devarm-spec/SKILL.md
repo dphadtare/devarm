@@ -4,12 +4,34 @@ description: "Use after a design is grounded (devarm-ground) and approved, to pr
 metadata:
   phase: 3
   produces: "spec.md + a spec quality checklist"
-  next: "halt and ask about devarm-plan unless end-to-end was explicitly requested"
+  next: "devarm-clarify (recommended), then halt and ask about devarm-plan unless end-to-end was explicitly requested"
 ---
 
 ## Announce
 
 "I'm using devarm-spec to write the testable specification from the grounded design."
+
+## Artifact and rule handoff contract
+
+Before acting, record the active repository and branch in the artifact metadata. Discover
+applicable target-repository instructions and link the canonical rule inventory; the
+target-repository rule wins over a devarm default, and material conflicts require a visible
+disposition. Run the optional validator; if it is unavailable, record the limitation and keep
+the manual checklist authoritative. The optional validator is not required for the native method.
+A deterministic blocking error stops the handoff; warnings remain visible and do not imply
+approval. Preserve explicit approval gates and mark an unanswered decision `assumed — awaiting confirmation`.
+If a settled decision is superseded, ripple-check dependent artifacts and re-check the affected
+evidence before continuing.
+
+**Delta-first writing:** when the grounded design and Decision Ledger are already approved and no
+decision has been superseded, reference the existing design sections and decision IDs instead of
+restating their architecture. Write only the requirements, scenarios, measurable criteria, and
+clarifications that add or constrain behavior. A material design change reopens the affected ledger
+row and triggers the normal ripple check; unchanged design prose does not need to be copied into
+the spec.
+
+When `.specify/` is absent, use the native fallback `templates/spec-doc.md` and retain its
+quality gate before handing off to clarify.
 
 ## Where the spec lives
 
@@ -60,7 +82,9 @@ Validate the spec against this checklist; iterate (max 3 passes) until it passes
 
 ## Hand off
 
-Report the spec path, checklist result, and recommended next phase (`devarm-plan`). By default,
-STOP and ask the user whether to run `devarm-plan`. Invoke `devarm-plan` only if the user
-explicitly requested end-to-end execution for this work or has just told you to continue. Do not
-treat silence as approval to continue.
+Report the spec path, checklist result, and recommended next phase (**`devarm-clarify`**, then
+`devarm-plan`). By default, STOP and ask the user whether to run **`devarm-clarify`**. If the
+user explicitly skips clarify, log the risk in the spec (Assumptions or Clarifications) and ask
+about `devarm-plan`. Invoke `devarm-clarify` or `devarm-plan` only if the user explicitly
+requested end-to-end execution for this work or has just told you to continue. Do not treat
+silence as approval to continue.

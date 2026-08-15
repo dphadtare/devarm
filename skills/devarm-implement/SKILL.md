@@ -2,7 +2,7 @@
 name: "devarm-implement"
 description: "Use to execute a tasks.md produced by devarm-tasks. Runs tasks one at a time with strict TDD (red → green → refactor), verifies with real command output before claiming anything is done, and reports commit-ready checkpoints. Never run git commit unless the developer explicitly asks for that commit. Optionally dispatches a fresh subagent per task with review between tasks. Ends by offering devarm-review."
 metadata:
-  phase: 7
+  phase: 8
   produces: "working code with green tests + commit-ready checkpoint summaries"
   next: "devarm-review"
 ---
@@ -10,6 +10,31 @@ metadata:
 ## Announce
 
 "I'm using devarm-implement to execute the plan task-by-task with TDD and verification."
+
+## Artifact and evidence handoff contract
+
+Before acting or resuming, read the current repository rules, current artifacts, and the diff;
+current evidence takes precedence over any stale summary. A clean analyze is required before coding.
+Re-validate the governing artifacts before coding and after any course correction, and record the
+result. On resume, revalidate artifacts against the current repository rules and diff. A mocked seam is an explicit limitation; it does not prove the real behavior without a
+real-seam test or a recorded live-run boundary. Optional adapters may provide inputs, but adapter
+use cannot bypass native gates.
+
+Preserve a dirty worktree and unrelated changes; isolate only the files in scope. A partial, failed, or blocked
+predecessor is not eligible for a complete handoff. If the validator is
+unavailable, record that limitation and keep the human checklist authoritative.
+
+### Status transition contract
+
+- draft -> in progress preserves artifact
+- draft -> awaiting approval blocks implementation
+- awaiting approval requires explicit approval
+- awaiting approval change returns to draft preserves feedback
+- in progress -> complete requires evidence
+- in progress -> partial, failed, blocked preserves side effects
+- partial, failed, blocked resume returns in progress after revalidation
+- complete is terminal without event
+- complete drift becomes blocked
 
 ## Preconditions
 
@@ -19,7 +44,7 @@ metadata:
    run since the last artifact/code change, run the appropriate one first.
 2. **Feature branch before task 1.** Create or checkout `NNN-short-name` (or project convention)
    before the first implementation edit — do not accumulate the full feature uncommitted on
-   `main` (spec 022: entire feature landed on `main`, branch/commit only at finish).
+   `main` (a prior failure: entire feature landed on `main`, branch/commit only at finish).
 3. **Design anchor — run before task 1, and again whenever resuming in a new session.** Locate
    the governing design doc + Decision Ledger for this work and play back, in 3-5 bullets, the
    constraints that bind implementation (architecture, boundaries, key ledger decisions). The
@@ -27,6 +52,21 @@ metadata:
    toward NEVER overrides what the approved doc says. If landed code or new instructions
    contradict the doc, that is the drift rule / course-correction protocol below — not a silent
    re-design from session context.
+4. **Base-branch drift check before task 1 (and after any `git pull` / merge during the feature).**
+   Re-verify plan anchors against the **current checkout**: file baselines (`wc -l`, grep anchor
+   strings), cited `file:line` seams, and branch identity vs where planning happened. If the
+   baseline moved, stop, record a PF-N note in tasks, and re-verify anchors by content — not
+   stale line numbers. *Failure-class rationale: planning on a branch 2 commits behind `main` changed
+   SKILL.md from 382 to 351 lines; every edit anchor was still correct but the line budget was
+   wrong.*
+5. **Shared-surface collateral check (when editing a high-traffic module already on `main`).**
+   Before the first edit to a god-file / shared route/repo/worker module (e.g. `routes.py`,
+   `repositories/ticket_job.py`, `worker.py`), diff that path against `main` (or the merge-base)
+   and list sibling behaviors already present on the file (soft-delete, list filters, aggregates,
+   auth guards). After your edits, keep or restore at least one contract/unit test that would
+   fail if those sibling behaviors were deleted — do not "win" your feature by silently removing
+   another. *Failure-class rationale (a prior failure): concurrent soft-delete (a concurrent change) on the same files was
+   stripped during multi-pod edits; DELETE returned 405 and list-filter asserts broke.*
 
 ## Execution loop (per task)
 
@@ -44,6 +84,29 @@ written before its test, RED must FAIL not error, test-quality rules, anti-patte
    the IDE:** run the SAME gate commands CI runs (discover them from the CI config — e.g.
    `mypy .`, `ruff check .`), because editor/IDE diagnostics (ReadLints) do NOT invoke the CI
    type-checker. Code that passes tests + IDE lints but fails `mypy .` still breaks the build.
+   **Subprocess patch sweep:** when adding a new git/subprocess call to an existing flow
+   (checkout, publish, diagnostic), grep tests that exercise that flow and confirm mocks patch
+   the **import site the caller uses** (e.g. function-local `from repo_publish import _run_git`
+   → patch `backend.services.git.repo_publish._run_git`, not the caller module attribute).
+   *Failure-class rationale (a prior failure): diagnostic head-commit `rev-parse` broke CI because checkout
+   cleanup tests did not mock the new subprocess call.*
+   **repository-local skill repo contract:** when adding or modifying
+   `backend/repository-local/skills/**/SKILL.md`, run the repo's skill-content test module (e.g.
+   `pytest tests/unit/test_skill_content_requirements.py -q` from `backend/`) **or** the same
+   full backend unit command CI uses (`pytest tests/unit -q`) — a feature-targeted subset alone
+   is not sufficient. *Failure-class rationale (a prior failure): targeted 029 tests passed; CI failed on
+   missing untrusted-input guard + reference-only classification for a new skill.*
+   **migration graph:** when adding or editing `**/migration/versions/**`, run `migration heads` and
+   require a **single** head whose `down_revision` is the previous tip — never reuse a revision
+   id already on `main`. *Failure-class rationale (a prior failure): lease migration reused `0026` already
+   taken by soft-delete → dual heads / broken migrate graph.*
+   **Wiring completeness sweep:** when a task adds a new helper in a pure module and wires it
+   from a god-file, before claiming the task done: (1) `grep` the helper name under
+   `backend/` and confirm ≥1 **production** call site in the cited orchestrator (not tests
+   only); (2) run the behavioral wiring test from tasks (not only helper unit tests); (3) if
+   tests expect orchestrator changes but the god-file is absent from `git diff`, stop —
+   split-brain. *Failure-class rationale (a prior failure): `change helpers` helpers landed; tests expected
+   `orchestrator module` wiring; orchestrator unchanged → 3 reds and feature inert until re-wired.*
 5. **Checkpoint** — report the changed files, verification evidence, any trade-off ledger rows
    logged since the last checkpoint (batched for veto, per the batching rule below), and a
    suggested commit message. Never run `git commit` unless the developer explicitly asks for
@@ -152,6 +215,13 @@ Completed, unaffected work stays; affected completed work gets an explicit rewor
 - Fix lints you introduce. Don't leave dead code or half-finished refactors.
 
 ## Hand off
+
+When tasks are green and verified, **before offering `devarm-review`**, if the feature changed
+multi-pod / multi-process / ownership topology (or the user asked for an implementation
+diagram), show one mermaid of what was *actually implemented* (components + claim/lease/
+schedule paths) so the operator mental model matches the code — not only the design doc.
+*Failure-class rationale (a prior failure): user asked "show me implementations in diagram format so I can
+understand what we implemented" after the coding pass.*
 
 When tasks are green and verified, offer `devarm-review`; after findings are closed,
 `devarm-finish` handles merge/PR/cleanup.
