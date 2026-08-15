@@ -58,6 +58,23 @@ parity:** no feature wiring remains unstaged while new modules are staged — ru
 *Failure-class rationale (a prior failure): `nr_link_intake.py` staged but `unified.py` /
 `remediation_workflow.py` unstaged at finish; a prior failure: core modules untracked at PR time.*
 
+For a PR, also confirm that `git rev-list --count <base>..HEAD` is greater than zero before
+attempting `git push` or `gh pr create`. If it is zero while the worktree or index contains the
+feature, stop and report that a commit is required; do not spend the remaining finish steps on an
+unopenable PR. The commit remains a separate lifecycle operation governed by the explicit commit
+policy.
+
+**Bounded external verification:** if the full suite can spawn a model, browser, network service,
+Docker job, or other external subprocess, give that command an explicit wall-clock timeout. When
+the repository can separate deterministic tests from external smoke tests, run the deterministic
+suite first and run the external subset separately with a **15-minute maximum per command**. If
+the suite cannot be separated, apply the timeout to the full command. A timeout, keyboard
+interruption, or orphaned subprocess is **verification incomplete**, not green: capture the last
+test node/process, clean up the child process, and do not present lifecycle options until the
+required verification is rerun or the user explicitly accepts the limitation as a deferred
+deployment check. This is a category-scoped rule for external-runtime verification, not a reason
+to add a deterministic response gate to the product.
+
 ## Step 2 — Determine the base branch
 
 `git merge-base HEAD main || git merge-base HEAD master`, or ask ("this split from main —

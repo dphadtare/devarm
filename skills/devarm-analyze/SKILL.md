@@ -98,6 +98,21 @@ CURRENT working tree:
   validation/review retry but not pre-validation coverage `continue`; findgap caught it
   post-ship.*
 
+- **Cross-channel trigger/timing matrix (required when the feature has two or more
+  intake/trigger channels, or an external poller/webhook can requeue or wake an entity):**
+  add a matrix covering the trigger source, entity lifecycle state, and timing of the event.
+  At minimum walk the event (a) before a run starts, (b) during an active run, (c) after a
+  manual/operator rerun or update, and (d) after the entity reaches a terminal status while
+  the external source remains live. For every cell, record the owning module, whether work is
+  reused/rejected/deferred/created, and the side effects for pending work, acknowledgement,
+  watermark/cursor, claim/lease, and terminal status. State the precedence when two channels
+  race. A terminal status must not suppress live external work unless that suppression is an
+  explicit locked decision. Any status-based source-eligibility choice (for example, whether a
+  closed or terminal source remains pollable) is an `owner: user` decision: present the
+  recommendation and alternatives in Pass 3 and record the answer in the Decision Ledger; do
+  not infer it silently from existing code or runtime behavior. This is a category-scoped gate
+  for multi-actor/re-entrant workflows, not a requirement for single-trigger features.
+
 ## Pass 3 — Implementation-decision brainstorm (interactive, with the user)
 
 This is a dialogue, not a report. Run it after Passes 1–2 are clean (or their findings are

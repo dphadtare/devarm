@@ -77,6 +77,28 @@ produces a recommended track classification before user confirmation:
    - **Standard track** — everything else: the full pipeline below.
    Never skip grounding, user approval, the pre-implementation decision batch, TDD, or
    verification on any track — scale trims paperwork, not gates.
+2c. **Existing-path delta checkpoint (standard-track speed):** when changing behavior or a
+   contract in an existing repository, inspect at most **five** high-value surfaces before opening
+   design alternatives: the current producer, current consumer, prompt/contract boundary,
+   persistence or audit boundary, and the most relevant tests. Present a compact table with
+   `existing behavior | actual gap | proposed delta | out of scope`. Do not design a new memory,
+   service, phase, or store until the table shows that the existing path cannot carry the goal.
+   If more than five surfaces are necessary, state why before expanding the inventory. This
+   checkpoint is evidence gathering, not a user approval gate, and prevents re-discovering an
+   existing capability during later planning. When the change crosses a phase/process boundary
+   or touches **three or more** of those surfaces, include two compact visuals in the design:
+   (a) an **as-is** map of the existing producer, consumer, state/gate, and external boundary;
+   (b) a **to-be** map or delta overlay showing only the proposed additions/removals and data flow.
+   Ground the as-is nodes and edges with `file:line` evidence; a conceptual diagram without
+   current-code evidence is not a system map. A one-surface local change may record `diagram: N/A`
+   with the reason.
+2d. **Pipeline execution mode:** ask once whether the user wants **guided mode** (halt at each
+   phase gate) or **batch-approved mode** (after grounded design approval, automatically run the
+   non-approval phases through analyze). Recommend batch-approved when the user says “continue”,
+   “end-to-end”, or repeatedly accepts routine recommendations. Batch-approved mode still stops
+   for design approval, owner-user design decisions, analyze Pass 3 decisions, failing tests, and
+   verification failures; it only removes repetitive phase-transition turns. Silence never opts
+   into it.
 3. **Ask clarifying questions — one at a time.** Prefer multiple-choice with a recommended
    option first. One question per message; break big topics into several. Work through the
    Question Coverage Map below — every area answered or explicitly marked N/A/deferred before
@@ -141,14 +163,15 @@ each answer becomes a candidate Decision Ledger row so it can't be re-litigated 
   `**Recommended:** <option> — <1-2 line reason>` above the options and tell the user a plain
   "yes" accepts it. Prioritize remaining questions by impact × uncertainty — never spend two
   low-impact questions while a high-impact area is unresolved.
-- **Disposition batch (≥3 Recommended remedies / R-items).** When locking a list of three or
-  more action dispositions (review remedies, challenged-finding approaches, "items that require
-  action"), present the **full batch** with Recommended on each row and
-  `Reply "accept all recommended" (or override by ID)` — same shape as `devarm-analyze` Pass 3.
-  Do **not** burn one turn per item asking "recommended?" even if the user said "discuss one by
-  one"; sequential deep-dives are optional *after* the batch is on the table, not a substitute
-  for the batch lock. *Failure-class rationale (026 hardening): seven consecutive "recommended" turns
-  then "Accept all recommended dispositions".*
+- **Decision batch trigger (≥3 routine choices or two consecutive accepts).** When locking a list
+  of three or more action dispositions (review remedies, challenged-finding approaches, "items
+  that require action"), or when the user accepts two consecutive routine recommendations,
+  present the **full remaining batch** with Recommended on each row and `Reply "accept all
+  recommended" (or override by ID)` — same shape as `devarm-analyze` Pass 3. Do **not** burn one
+  turn per item asking "recommended?"; sequential deep-dives are optional after the batch is on
+  the table, not a substitute for it. Keep one-at-a-time questioning only for a conceptual
+  misunderstanding or a genuinely new fork. *Failure-class rationale: a prior session spent
+  seven consecutive "recommended" turns locking routine choices one at a time.*
 - **Confusion / decide stop.** If the user says they don't understand, asks to elaborate, or
   asks "help me decide / help me understand X", **stop the recommendation loop**. Re-explain
   the contested point in plain language (with a small diagram when the confusion is about

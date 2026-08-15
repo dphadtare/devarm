@@ -184,12 +184,35 @@ class MethodContractTests(unittest.TestCase):
         self.assertIn("quality gate", text.lower())
         self.assertIn("optional validator", text)
 
+    def test_spec_and_plan_reference_settled_design_instead_of_repeating_it(self):
+        spec = self.read("skills/devarm-spec/SKILL.md").lower()
+        plan = self.read("skills/devarm-plan/SKILL.md").lower()
+        self.assertIn("delta-first writing", spec)
+        self.assertIn("reference the existing design sections", spec)
+        self.assertIn("delta-first handoff", plan)
+        self.assertIn("do not copy unchanged architecture", plan)
+
     def test_plan_requires_file_map_seams_and_validator_handoff(self):
         text = self.read("skills/devarm-plan/SKILL.md")
         self.assertIn("templates/plan-doc.md", text)
         self.assertIn("file-structure map", text)
         self.assertIn("integration seam", text.lower())
         self.assertIn("optional validator", text)
+
+    def test_plan_requires_structured_handoff_shape_and_renderer_matrix(self):
+        text = self.read("skills/devarm-plan/SKILL.md").lower()
+        for phrase in (
+            "structured handoff seam",
+            "shape-and-cardinality matrix",
+            "wrong-type",
+            "duplicate",
+            "unmatched",
+            "supplemental",
+            "rendering assertion",
+            "real caller seam",
+        ):
+            with self.subTest(phrase=phrase):
+                self.assertIn(phrase, text)
 
     def test_early_phase_rules_preserve_approval_and_unanswered_decision_blocks(self):
         for path in (
@@ -211,6 +234,50 @@ class MethodContractTests(unittest.TestCase):
         self.assertIn("any persistence change", text)
         self.assertIn("any contract change", text)
         self.assertIn("upgrade to the standard track", text)
+
+    def test_brainstorm_has_delta_first_and_explicit_pipeline_modes(self):
+        text = self.read("skills/devarm-brainstorm/SKILL.md").lower()
+        for phrase in (
+            "existing-path delta checkpoint",
+            "at most **five** high-value surfaces",
+            "existing behavior | actual gap | proposed delta | out of scope",
+            "guided mode",
+            "batch-approved mode",
+            "removes repetitive phase-transition turns",
+            "silence never opts",
+        ):
+            with self.subTest(phrase=phrase):
+                self.assertIn(phrase, text)
+
+    def test_brainstorm_batches_after_repeated_routine_acceptance(self):
+        text = self.read("skills/devarm-brainstorm/SKILL.md").lower()
+        self.assertIn("two consecutive accepts", text)
+        self.assertIn("full remaining batch", text)
+        self.assertIn("genuinely new fork", text)
+
+    def test_brainstorm_requires_as_is_and_to_be_visuals_for_multi_surface_changes(self):
+        text = self.read("skills/devarm-brainstorm/SKILL.md").lower()
+        for phrase in (
+            "as-is",
+            "to-be",
+            "three or more",
+            "file:line",
+            "diagram: n/a",
+        ):
+            with self.subTest(phrase=phrase):
+                self.assertIn(phrase, text)
+
+    def test_ground_revalidates_visual_nodes_and_edges_against_current_code(self):
+        text = self.read("skills/devarm-ground/SKILL.md").lower()
+        for phrase in (
+            "visual grounding for multi-surface changes",
+            "as-is/to-be visual",
+            "existing-system node",
+            "file:line",
+            "diagram is an evidence aid",
+        ):
+            with self.subTest(phrase=phrase):
+                self.assertIn(phrase, text)
 
     def test_quick_track_is_exactly_three_changed_files_or_fewer(self):
         text = self.read("skills/devarm-brainstorm/SKILL.md")
@@ -299,6 +366,20 @@ class MethodContractTests(unittest.TestCase):
         self.assertIn("fresh full-suite evidence", text)
         self.assertIn("current artifact validation", text)
         self.assertIn("typed discard confirmation", text)
+
+    def test_finish_bounds_external_verification_and_checks_pr_head(self):
+        text = self.read("skills/devarm-finish/SKILL.md").lower()
+        for phrase in (
+            "git rev-list --count",
+            "commit is required",
+            "bounded external verification",
+            "explicit wall-clock timeout",
+            "15-minute maximum",
+            "verification incomplete",
+            "orphaned subprocess",
+        ):
+            with self.subTest(phrase=phrase):
+                self.assertIn(phrase, text)
 
     def test_retro_requires_motivating_evidence_and_method_inventory(self):
         text = self.read("skills/devarm-retro/SKILL.md").lower()
@@ -481,6 +562,29 @@ class MethodContractTests(unittest.TestCase):
         ):
             with self.subTest(phrase=phrase):
                 self.assertIn(phrase, text)
+
+    def test_multichannel_reentrant_workflows_require_cross_channel_timing_coverage(self):
+        analyze = self.read("skills/devarm-analyze/SKILL.md").lower()
+        tasks = self.read("skills/devarm-tasks/SKILL.md").lower()
+        for phrase in (
+            "cross-channel trigger/timing matrix",
+            "before a run starts",
+            "during an active run",
+            "manual/operator rerun or update",
+            "terminal status",
+            "external source remains live",
+            "two or more intake/trigger channels",
+            "event-before-run",
+            "event-during-active-run",
+            "event-after-manual/operator-rerun-or-update",
+            "terminal-entity-with-live-source",
+            "duplicate/lost-work side effects",
+            "status-based source-eligibility choice",
+            "owner: user",
+            "infer it silently",
+        ):
+            with self.subTest(phrase=phrase):
+                self.assertTrue(phrase in analyze or phrase in tasks)
 
     def test_normative_skills_do_not_contain_incident_provenance_markers(self):
         import re

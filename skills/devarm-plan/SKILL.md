@@ -33,6 +33,12 @@ problem domain, and doesn't know good test design. Document everything: which fi
 task, the actual code, how to test it, what to check. DRY, YAGNI, TDD, frequent commit-ready
 checkpoints. Actual commits require explicit developer confirmation.
 
+**Delta-first handoff:** treat the grounded design and spec as the source of settled architecture
+and intent. Reference Decision Ledger IDs and requirement IDs; do not copy unchanged architecture,
+problem, or lifecycle prose into `plan.md`. Spend plan space on file ownership, integration seams,
+tests, commands, and implementation deltas. If the plan must contradict a settled decision, stop
+and record a superseding decision before rewriting dependent sections.
+
 ## Steps
 
 1. **Load context.** Read the approved+grounded design (especially its Detailed Design +
@@ -110,6 +116,17 @@ checkpoints. Actual commits require explicit developer confirmation.
    genuinely cannot be specified yet, add an explicit **spike task**
    to resolve it BEFORE the implementation task that depends on it — never defer it into the
    impl task itself.
+   **Structured handoff seam (required when a feature passes structured agent/model output between
+   phases or services):** add a shape-and-cardinality matrix before implementation. At minimum cover
+   an absent, null, wrong-type, empty, singleton, and list-valued payload; missing, unknown, duplicate,
+   and invalid identifiers; incomplete required fields; omitted current responses; and unmatched
+   supplemental entries. For each case specify whether the caller rejects, normalizes, preserves, or
+   exposes the value for a later phase, and state the exact prompt/renderer surface that must show it.
+   If a field is stored in a handoff, require a rendering assertion for that field; if no
+   deterministic semantic gate is allowed, record which phase owns the final decision. Add a failing
+   test task for every non-obvious row, including the real caller seam rather than only the pure
+   parser/renderer. This is category-scoped to cross-phase structured handoffs, not ordinary local
+   function arguments.
 5b. **State-transition table (required when the feature adds/changes a re-entrant or multi-actor
    state machine** — re-mention, retry, mid-flight arrival, resume, reopen, cancel, or any flow
    where the same entity is re-processed). A narrative walkthrough is not enough here and is

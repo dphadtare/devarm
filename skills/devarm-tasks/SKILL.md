@@ -80,6 +80,14 @@ Deterministic errors block the handoff; warnings remain visible and do not imply
   sufficient** and may stay green while the feature is unwired. *Failure-class rationale (a prior failure):
   T010 source inspection passed; challenge found split-brain (helpers + tests without
   `orchestrator module` wiring); a ticket fix did not ship until behavioral test added.*
+  When a feature has **two or more intake/trigger channels**, or an external poller/webhook can
+  requeue an entity that can also be rerun manually, add acceptance tests for the cross-channel
+  timing matrix before implementation. Cover event-before-run, event-during-active-run,
+  event-after-manual/operator-rerun-or-update, and terminal-entity-with-live-source cells.
+  Each test must assert the terminal outcome and pending/acknowledgement, watermark/cursor,
+  claim/lease, and duplicate/lost-work side effects; include negative assertions for suppressed
+  live work, duplicate scheduling, and accidental terminal-state downgrade. This is a
+  category-scoped requirement for re-entrant multi-actor workflows.
   When tasks add a **new repository-local skill directory**, include an acceptance task that the skill
   satisfies the repo skill-content contract: standard `## Untrusted Input` guard; classify as
   **producing** (requires ` ```json ` delivery markers) vs **reference-only** (overlay loaded

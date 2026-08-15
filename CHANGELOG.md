@@ -3,6 +3,81 @@
 Every entry records a method change and the session/failure that motivated it. Maintained by
 `devarm-retro` — a lesson is only "done" when it's a gate in the method, not just a note.
 
+## 2026-08-15 — visual system-map retro (portable method)
+
+Follow-up evidence from the long design session showed that the proposed-architecture diagram
+rule did not require an as-is map of the existing producer/consumer/state/gate flow. The missing
+visual made the purpose, current behavior, and small change delta harder to understand and left
+the conversation reconstructing the same system in prose.
+
+`devarm-brainstorm` now requires compact as-is and to-be visuals for changes crossing a
+phase/process boundary or touching at least three high-value surfaces. `devarm-ground` reopens
+those visuals and validates every existing-system node and edge against current `file:line`
+evidence. One-surface local changes may record `diagram: N/A` with a reason.
+
+**Method inventory:** native `devarm-brainstorm` and `devarm-ground` gates plus contract tests;
+evidence source was the follow-up retro observation; output is the updated speed retro report and
+visual-grounding method coverage. No product runtime behavior changed.
+
+## 2026-08-15 — design/planning speed retro (portable method)
+
+Motivated by a long cross-phase design session whose captured transcript contained 116 user
+messages, 718 tool orchestration calls, 81 waits, and at least seven consecutive routine
+`recommended` accepts. The important decisions were sound, but current-path discovery, routine
+decision acceptance, manual phase transitions, and repeated artifact prose created avoidable
+conversation cost.
+
+The method now adds a five-surface existing-path delta checkpoint, an explicit guided versus
+batch-approved execution mode, a batch trigger after two consecutive routine accepts, and
+delta-first spec/plan writing that references settled design and ledger IDs. These are portable
+conversation and artifact-shaping rules; they do not skip grounding, design approval, analyze,
+TDD, review, or verification.
+
+**Method inventory:** native `devarm-brainstorm`, `devarm-spec`, and `devarm-plan` gates plus
+contract tests; evidence source was the long design/planning transcript; output is the speed retro
+report and method-contract coverage. No product runtime behavior changed.
+
+## 2026-08-15 — structured handoff and bounded finish retro (category-scoped)
+
+Motivated by the general cross-phase structured-handoff implementation session. Review/fix
+request, response-shape, and renderer defects landed in the integration seam even though the
+pure helper tests were green; the finish path also stalled in an unbounded external model test
+and discovered that the PR branch had zero commits ahead of its base only after staging and
+verification.
+
+The category-scoped method change adds a shape-and-cardinality matrix to `devarm-plan` for
+structured agent/model handoffs, including malformed, duplicate, incomplete, unmatched, and
+renderer-completeness cases with real caller-seam tests. `devarm-finish` now requires an explicit
+external-verification timeout and a nonzero base-to-head commit count before PR execution. The
+generalization check supports these rules for cross-phase payloads and external-runtime/PR flows,
+not ordinary local arguments or product-specific response semantics.
+
+**Method inventory:** native `devarm-plan` and `devarm-finish` gates; evidence source was the
+structured review/fix handoff and its finish attempt; output is the retro report, contract tests,
+and changelog entry. No product runtime behavior changed.
+
+## 2026-08-13 — multi-channel trigger timing retro (category-scoped)
+
+Motivated by the TC PR-feedback redesign session. The poller, Jira/manual rerun, live PR, and
+ticket lifecycle were each understood correctly in isolation, but their event-before-run,
+event-during-active-run, post-rerun, and terminal-ticket interactions were clarified late. The
+implementation seam was mostly sound; the missing method contract was an explicit cross-channel
+timing/state matrix and acceptance coverage for pending, acknowledgement, watermark, active-job,
+and terminal-status side effects.
+
+The category-scoped method change adds that matrix to `devarm-analyze` when two or more trigger
+channels or an external requeue source exist, and requires matching tests in `devarm-tasks`,
+including negative assertions for lost work, duplicate scheduling, suppressed live work, and
+terminal-state downgrade. The generalization check supports this as a reusable
+multi-actor/re-entrant workflow category, not a universal rule for single-trigger features.
+Status-based source eligibility is explicitly an `owner: user` decision in the analyze gate;
+choices such as whether a closed external source remains pollable must be recommended and
+recorded rather than inferred silently.
+
+**Method inventory:** native devarm gate; evidence source was the PR-feedback workflow; output is
+the analyze timing matrix plus decision-to-test tasks; reuse next time is for any external
+poller/webhook combined with manual/operator rerun. No runtime or product behavior changed.
+
 ## 2026-08-13 — portable retro promotion and normative-skill audit
 
 Motivated by the review of TC-derived devarm evolution: incident evidence was repeatedly embedded

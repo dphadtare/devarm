@@ -23,6 +23,13 @@ approval. Preserve explicit approval gates and mark an unanswered decision `assu
 If a settled decision is superseded, ripple-check dependent artifacts and re-check the affected
 evidence before continuing.
 
+**Delta-first writing:** when the grounded design and Decision Ledger are already approved and no
+decision has been superseded, reference the existing design sections and decision IDs instead of
+restating their architecture. Write only the requirements, scenarios, measurable criteria, and
+clarifications that add or constrain behavior. A material design change reopens the affected ledger
+row and triggers the normal ripple check; unchanged design prose does not need to be copied into
+the spec.
+
 When `.specify/` is absent, use the native fallback `templates/spec-doc.md` and retain its
 quality gate before handing off to clarify.
 

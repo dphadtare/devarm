@@ -46,6 +46,13 @@ the affected evidence before continuing.
 
 ## Process (create a task per step, complete in order)
 
+**Visual grounding for multi-surface changes:** when the brainstorm delta checkpoint produced an
+as-is/to-be visual, re-open both diagrams during grounding. Annotate every existing-system node
+and edge with current-code `file:line` evidence, mark any unverified relationship explicitly, and
+confirm that the to-be flow changes only the grounded delta. A diagram is an evidence aid, not a
+replacement for the ten decision categories or the Decision Ledger. If the change is a single
+local surface and the design records `diagram: N/A` with a reason, no visual is required.
+
 ### Step 1 — Build the Reuse Inventory
 
 Extract EVERY reference in the draft to something that already exists, tagged with the verb:
